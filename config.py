@@ -5,5 +5,3 @@ DB_CONFIG = {
     'password': '791872',
     'database': 'face_verify_db',
 }
-
-PROMPTPAY_ID = "0889791872"
