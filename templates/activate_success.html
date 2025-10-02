@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ยืนยันอีเมลสำเร็จ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen px-4">
+  <div class="bg-white p-8 rounded-xl shadow-md max-w-md w-full text-center">
+    <h1 class="text-2xl font-bold mb-4">อีเมล <span id="email-text" class="text-indigo-600"></span> ได้รับการยืนยันแล้ว!</h1>
+    <p class="mb-6 text-gray-700">ขอบคุณที่ยืนยันอีเมลของคุณ คุณสามารถเข้าสู่ระบบเพื่อใช้งานบัญชีของคุณได้ทันที</p>
+    <a href="/login" class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">
+      เข้าสู่ระบบ
+    </a>
+  </div>
+
+  <script>
+    // หากต้องการส่ง email มาแสดงในหน้านี้ ผ่าน query param
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get('email');
+    if (email) {
+      document.getElementById('email-text').textContent = email;
+    } else {
+      document.getElementById('email-text').textContent = 'ของคุณ';
+    }
+  </script>
+</body>
+</html>

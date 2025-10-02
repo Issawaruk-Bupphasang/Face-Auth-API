@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>สมัครสมาชิกสำเร็จ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top left, #0f172a, #020617 70%);
+      color: #e0e0e0;
+    }
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .neon-border {
+      border: 1px solid transparent;
+      background-clip: padding-box;
+      box-shadow: 0 0 12px rgba(59,130,246,0.6),
+                  0 0 24px rgba(168,85,247,0.5);
+    }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+  <div class="w-full max-w-md glass neon-border rounded-2xl shadow-xl p-8 relative text-center">
+    <!-- Decorative glow -->
+    <div class="absolute -top-8 -right-8 w-24 h-24 bg-purple-600/30 rounded-full blur-3xl pulse"></div>
+
+    <h2 class="text-3xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
+      สมัครสมาชิกสำเร็จ!
+    </h2>
+
+    <p class="text-gray-300 mb-6">
+      คุณสามารถเข้าสู่ระบบได้ทันที
+    </p>
+
+    <a href="/login"
+       class="inline-block w-full py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-80 transition">
+       เข้าสู่ระบบ
+    </a>
+  </div>
+
+</body>
+</html>

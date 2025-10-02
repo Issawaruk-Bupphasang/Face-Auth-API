@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🚀 Morris API</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: radial-gradient(circle at top left, #0f172a, #020617 70%);
+      font-family: 'Inter', sans-serif;
+      color: #e0e0e0;
+    }
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .neon-border {
+      border: 1px solid transparent;
+      background-clip: padding-box;
+      box-shadow: 0 0 12px rgba(59,130,246,0.6),
+                  0 0 24px rgba(168,85,247,0.5);
+    }
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% {opacity: 1;}
+      50% {opacity: 0.6;}
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Navigation -->
+  <nav class="flex justify-between items-center px-8 py-4 glass sticky top-0 z-50 shadow-lg">
+    <a href="/api" class="text-2xl font-bold tracking-wide bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+      Morris API
+    </a>
+
+    <div class="flex items-center space-x-4">
+      {% if user and user != "Guest" %}
+        <span class="bg-green-900/30 text-green-300 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+          ⚡ Credit: {{ token_uses_left }}
+        </span>
+      <div class="relative group">
+        <!-- ปุ่ม -->
+        <button class="bg-gray-800 px-4 py-1.5 rounded-full hover:bg-gray-700 transition">
+          {{ user }}
+        </button>
+
+        <!-- Dropdown -->
+        <div class="absolute right-0 top-full mt-0 w-56 glass rounded-lg shadow-xl
+                    opacity-0 scale-95 pointer-events-none transition transform origin-top-right
+                    group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto z-50">
+          <div class="px-4 py-3 border-b border-gray-700">
+            <p class="font-semibold">{{ user }}</p>
+            <p class="text-xs text-gray-400">{{ email }}</p>
+          </div>
+          <a href="/account" class="block px-4 py-2 hover:bg-gray-700">⚙ My Account</a>
+          <a href="/logout" class="block px-4 py-2 hover:bg-red-700 text-red-400">🚪 Logout</a>
+        </div>
+      </div>
+      {% else %}
+        <a href="/login" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold rounded-lg shadow hover:opacity-80 transition">
+          Login
+        </a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- Single API Section -->
+  <section class="py-20 px-6 max-w-3xl mx-auto">
+    <div onclick="location.href='/api/face_authentication'" 
+         class="p-10 glass rounded-2xl shadow-xl border hover:shadow-2xl transition cursor-pointer text-center neon-border">
+
+      <!-- Icon -->
+      <div class="flex justify-center items-center w-20 h-20 mx-auto mb-6 text-white text-5xl bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full shadow-lg pulse">
+        👤
+      </div>
+
+      <!-- Title -->
+      <h3 class="font-bold text-3xl mb-3 text-white">Face Authentication API</h3>
+      
+      <!-- Description -->
+      <p class="text-gray-300 text-base max-w-md mx-auto">
+        Verify and authenticate user identity instantly using advanced face recognition technology.
+      </p>
+    </div>
+  </section>
+
+</body>
+</html>

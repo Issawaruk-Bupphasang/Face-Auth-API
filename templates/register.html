@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🚀 สมัครสมาชิก</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+
+<style>
+  html {
+    margin: 0;
+    padding: 0;
+    height: auto;   /* เต็ม viewport จริงบนมือถือ */
+    width: auto;
+    overflow-x: hidden;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100dvh; /* เต็มความสูง viewport จริง */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto; /* ให้ pull-to-refresh ทำงาน */
+    overflow-x: hidden;
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at top left, #0f172a, #020617 70%);
+    color: #e0e0e0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .glass {
+    max-height: 100vh;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .neon-border {
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    box-shadow: 0 0 12px rgba(59,130,246,0.6),
+                0 0 24px rgba(168,85,247,0.5);
+  }
+  .pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
+  .error-border { border-color: #f87171 !important; }
+  .group {
+    position: relative;
+    flex: 1;
+  }
+  .group input {
+    width: 100%;
+    padding: 12px 10px 8px 5px;
+    border: none;
+    border-bottom: 1px solid #666;
+    background: transparent;
+    color: #e0e0e0;
+    outline: none;
+  }
+  .group label {
+    position: absolute;
+    left: 5px;
+    top: 12px;
+    color: #aaa;
+    font-size: 16px;
+    pointer-events: none;
+    transition: 0.2s ease all;
+  }
+  .group input:focus ~ label,
+  .group input:not(:placeholder-shown) ~ label {
+    top: -10px;
+    font-size: 14px;
+    color: #a855f7;
+  }
+  input[type="text"]:focus,
+  input[type="password"]:focus,
+  input[type="email"]:focus {
+      border-width: 2px;
+      border-bottom-color: #a855f7;
+  }
+</style>
+</head>
+<body class="flex items-center justify-center h-screen px-4 sm:px-6 lg:px-8">
+<div class="w-full max-w-sm sm:max-w-md glass neon-border rounded-2xl shadow-xl p-6 sm:p-8 relative">
+  <div class="absolute -top-6 -right-6 w-20 h-20 sm:w-24 sm:h-24 bg-purple-600/30 rounded-full blur-3xl pulse"></div>
+
+      <h2 class="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
+        สมัครสมาชิก
+      </h2>
+      {% if request.session.get("flash") %}
+        <div class="mb-4 p-2 rounded bg-green-500 text-white">
+          {{ request.session.pop("flash") }}
+        </div>
+      {% endif %}
+      <form action="/auth/register" method="POST" onsubmit="return validateForm(event);" class="space-y-4" novalidate>
+        <!-- Username (อ้างอิง) -->
+        <div class="mb-4 relative">
+          <div class="flex items-center relative">
+            <span class="text-red-500 text-lg absolute left-0 top-1/2 -translate-y-1/2 -ml-3">*</span>
+            <div class="group flex-1">
+              <input type="text" id="username" name="username" placeholder=" " required class="pl-5 w-full" />
+              <label for="username">Username</label>
+            </div>
+          </div>
+          <div id="username-error" class="text-sm text-red-400 hidden mt-1 ml-1"></div>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-4 relative">
+          <div class="flex items-center relative">
+            <span class="text-red-500 text-lg absolute left-0 top-1/2 -translate-y-1/2 -ml-3">*</span>
+            <div class="group flex-1 relative">
+              <input type="password" id="password" name="password" placeholder=" " required class="pl-5 w-full" />
+              <label for="password">Password</label>
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300"
+                      onclick="togglePassword('password', this)">
+                <!-- icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="password-error-format" class="text-sm text-red-400 hidden mt-1 ml-1"></div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="mb-4 relative">
+          <div class="flex items-center relative">
+            <span class="text-red-500 text-lg absolute left-0 top-1/2 -translate-y-1/2 -ml-3">*</span>
+            <div class="group flex-1 relative">
+              <input type="password" id="confirm_password" name="confirm_password" placeholder=" " required class="pl-5 w-full" />
+              <label for="confirm_password">Confirm Password</label>
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300"
+                      onclick="togglePassword('confirm_password', this)">
+                <!-- icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="password-error" class="text-sm text-red-400 hidden mt-1 ml-1"></div>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-4 relative">
+          <div class="flex items-center relative">
+            <span class="text-red-500 text-lg absolute left-0 top-1/2 -translate-y-1/2 -ml-3">*</span>
+            <div class="group flex-1">
+              <input type="email" id="email" name="email" placeholder=" " required class="pl-5 w-full" />
+              <label for="email">Email</label>
+            </div>
+          </div>
+          <div id="email-error" class="text-sm text-red-400 hidden mt-1 ml-1"></div>
+        </div>
+
+        <!-- OTP -->
+        <div id="otp-wrapper" class="hidden mb-4">
+          <div class="flex items-center relative">
+            <!-- * สีแดง absolute -->
+            <span class="text-red-500 text-lg absolute left-0 top-1/2 -translate-y-1/2 -ml-3">*</span>
+            <div class="group flex-1 relative">
+              <input type="text" id="otp" name="otp" placeholder=" " class="pl-5 w-full" />
+              <label for="otp">OTP</label>
+            </div>
+            <button type="button" id="send-otp-btn"
+                    class="ml-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-80 transition w-[120px] flex-shrink-0 text-center">
+              Send OTP
+            </button>
+          </div>
+          <div id="otp-error" class="text-sm text-red-400 hidden mt-1 ml-1"></div>
+          <div id="otp-status" class="text-sm text-green-400 hidden mt-1 ml-1"></div>
+        </div>
+
+        <!-- Submit -->
+        <input type="submit" value="สมัครสมาชิก"
+              class="w-full py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-80 transition cursor-pointer" />
+  </form>
+
+  <p class="text-sm flex justify-between mt-4">
+    <a href="/login" class="text-purple-400 hover:underline">เข้าสู่ระบบ</a>
+    <a href="/forgot-password" class="text-purple-400 hover:underline">ลืมรหัสผ่าน?</a>
+  </p>
+</div>
+
+<script>
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
+const confirmPasswordInput = document.getElementById("confirm_password");
+const emailInput = document.getElementById("email");
+const otpInput = document.getElementById("otp");
+
+const usernameError = document.getElementById("username-error");
+const passwordErrorFormat = document.getElementById("password-error-format");
+const passwordError = document.getElementById("password-error");
+const emailError = document.getElementById("email-error");
+const otpError = document.getElementById("otp-error");
+
+const otpWrapper = document.getElementById("otp-wrapper");
+const sendOtpBtn = document.getElementById("send-otp-btn");
+const otpSentMsg = document.getElementById("otp-sent-msg");
+
+const usernameRegex = /^[A-Za-z0-9]+$/;
+const passwordRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/;
+
+function showError(inputElem, errorDiv, message){
+  if(errorDiv){
+    errorDiv.textContent = message;
+    errorDiv.classList.remove("hidden");
+  }
+  inputElem.classList.add("error-border");
+}
+function hideError(inputElem, errorDiv){
+  if(errorDiv){
+    errorDiv.classList.add("hidden");
+  }
+  inputElem.classList.remove("error-border");
+}
+
+usernameInput.addEventListener("input", () => {
+  if(usernameInput.value.trim() !== ""){
+    hideError(usernameInput, usernameError);
+  }
+});
+passwordInput.addEventListener("input",()=>hideError(passwordInput,passwordErrorFormat));
+confirmPasswordInput.addEventListener("input",()=>hideError(confirmPasswordInput,passwordError));
+otpInput.addEventListener("input",()=>hideError(otpInput,otpError));
+emailInput.addEventListener("input",()=>hideError(emailInput,emailError));
+
+function checkPasswordMatch() {
+  const pwd = passwordInput.value;
+  const confirm = confirmPasswordInput.value;
+
+  // รีเซ็ต error ทั้งสองก่อน
+  hideError(passwordInput, passwordErrorFormat);
+  hideError(confirmPasswordInput, passwordError);
+
+  // ตรวจ password ว่างหรือไม่ซับซ้อน
+  const pwdMsg = validatePasswordComplexity(pwd);
+  if(pwdMsg){
+    showError(passwordInput, passwordErrorFormat, pwdMsg);
+  }
+
+  // ตรวจ confirm password
+  if(!confirm){
+    showError(confirmPasswordInput, passwordError, "กรุณายืนยันรหัสผ่าน");
+  } else if(pwd !== confirm){
+    showError(confirmPasswordInput, passwordError, "รหัสผ่านไม่ตรงกัน");
+  }
+}
+
+function validatePasswordComplexity(pwd) {
+  if (!pwd) return "กรุณากรอกรหัสผ่าน";
+
+  // ตรวจว่ามีตัวอักษรต้องห้าม (ไม่ใช่ a-z, A-Z, 0-9, หรือ special char)
+  const invalidCheck = /[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
+  if (invalidCheck) return "รหัสผ่านห้ามมีตัวอักษรภาษาอื่นที่ไม่ใช่ a-z, A-Z, 0-9 หรือสัญลักษณ์ที่กำหนด";
+
+  const lengthCheck = pwd.length >= 8;
+  const lowerCheck = /[a-z]/.test(pwd);
+  const upperCheck = /[A-Z]/.test(pwd);
+  const numberCheck = /[0-9]/.test(pwd);
+  const specialCheck = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
+
+  if (!lengthCheck) return "รหัสผ่านของคุณต้องมีอย่างน้อย 8 ตัวอักษร";
+  if (!lowerCheck) return "รหัสผ่านของคุณต้องมีตัวอักษรพิมพ์เล็กอย่างน้อย 1 ตัว";
+  if (!upperCheck) return "รหัสผ่านของคุณต้องมีตัวอักษรพิมพ์ใหญ่อย่างน้อย 1 ตัว";
+  if (!numberCheck) return "รหัสผ่านของคุณต้องมีตัวเลขอย่างน้อย 1 ตัว";
+  if (!specialCheck) return "รหัสผ่านของคุณต้องมีเครื่องหมาย/อักขระพิเศษอย่างน้อย 1 ตัว";
+
+  return ""; // ผ่านทั้งหมด
+}
+
+// blur ของ confirm password
+confirmPasswordInput.addEventListener("blur", checkPasswordMatch);
+
+// blur ของ password (เพื่อรองรับกรณีแก้ไข password หลังกรอก confirm)
+passwordInput.addEventListener("blur", () => {
+  const pwd = passwordInput.value;
+  const pwdMsg = validatePasswordComplexity(pwd);
+  if(pwdMsg){
+    showError(passwordInput, passwordErrorFormat, pwdMsg);
+  } else {
+    hideError(passwordInput, passwordErrorFormat);
+  }
+
+  // ตรวจความตรงกันกับ confirm password
+  checkPasswordMatch();
+});
+
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const type = input.type === 'password' ? 'text' : 'password';
+  input.type = type;
+
+  // เปลี่ยนไอคอน
+  btn.innerHTML = type === 'password' ? 
+    `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+             d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+             d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
+     </svg>` :
+    `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+             d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 012.223-3.676M6.477 6.477A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.373 2.53M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+             d="M3 3l18 18" />
+     </svg>`;
+}
+
+// Email blur & check OTP
+emailInput.addEventListener("blur", async () => {
+  const email = emailInput.value.trim();
+
+  if(emailInput.value.trim() === "") { 
+    showError(emailInput, emailError, "กรุณากรอกอีเมล"); 
+    valid=false; 
+  } else {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(emailInput.value.trim())){
+      showError(emailInput, emailError, "อีเมลไม่ถูกต้อง");
+      valid = false;
+    }
+  }
+
+  try{
+    const res = await fetch("/check-email?email="+encodeURIComponent(email));
+    const data = await res.json();
+    if(data.exists){
+      showError(emailInput,emailError,data.message);
+      otpWrapper.classList.add("hidden");
+    } else {
+      otpWrapper.classList.remove("hidden");
+      sendOtpBtn.disabled = false;
+    }
+  } catch(err){
+    console.error(err);
+    showError(emailInput,emailError,"เกิดข้อผิดพลาดในการตรวจสอบ Email");
+    otpWrapper.classList.add("hidden");
+  }
+});
+
+// Username blur & check
+usernameInput.addEventListener("blur", async () => {
+  const username = usernameInput.value.trim();
+
+  if(!username){
+    showError(usernameInput, usernameError, "กรุณากรอกชื่อผู้ใช้");
+    return;
+  }
+
+  if(!usernameRegex.test(username)){
+    showError(usernameInput, usernameError, "ชื่อผู้ใช้ต้องเป็นตัวอักษรภาษาอังกฤษ");
+    return;
+  }
+
+  hideError(usernameInput, usernameError); // ผ่าน regex แล้ว
+
+  try {
+    const res = await fetch("/check-username?username=" + encodeURIComponent(username));
+    const data = await res.json();
+    if(data.exists){
+      showError(usernameInput, usernameError, data.message);
+    }
+  } catch(err){
+    console.error(err);
+    showError(usernameInput, usernameError, "เกิดข้อผิดพลาดในการตรวจสอบ Username");
+  }
+});
+
+// Confirm Password blur
+confirmPasswordInput.addEventListener("blur", () => {
+  const pwd = passwordInput.value;
+  const confirmPwd = confirmPasswordInput.value;
+  if(!confirmPwd){
+    showError(confirmPasswordInput, passwordError, "กรุณายืนยันรหัสผ่าน");
+    return;
+  }
+  if(confirmPwd !== pwd){
+    showError(confirmPasswordInput, passwordError, "รหัสผ่านไม่ตรงกัน");
+    return;
+  }
+  hideError(confirmPasswordInput, passwordError);
+});
+
+// Send OTP
+sendOtpBtn.addEventListener("click", async () => {
+  hideError(otpInput, otpError);
+  const email = emailInput.value.trim();
+  const otpStatus = document.getElementById("otp-status");
+  otpStatus.classList.add("hidden");
+  otpStatus.textContent = "";
+
+  if(!email) return;
+
+  try {
+    const formData = new FormData();
+    formData.append("email", email);
+    const res = await fetch("/send-otp", { method: "POST", body: formData });
+
+    if(!res.ok) {
+      const text = await res.text();
+      showError(otpInput, otpError, text);
+    } else {
+      otpWrapper.classList.remove("hidden");
+
+      // แสดงข้อความ OTP ส่งเรียบร้อย
+      otpStatus.textContent = "OTP ถูกส่งไปแล้ว";
+      otpStatus.classList.remove("hidden");
+
+      // ปิดปุ่ม Send OTP 30 วินาที
+      sendOtpBtn.disabled = true;
+      let countdown = 30;
+      const originalText = sendOtpBtn.textContent;
+      sendOtpBtn.textContent = `รอ ${countdown} วินาที`;
+      const timer = setInterval(() => {
+        countdown--;
+        sendOtpBtn.textContent = `รอ ${countdown} วินาที`;
+        if(countdown <= 0) {
+          clearInterval(timer);
+          sendOtpBtn.disabled = false;
+          sendOtpBtn.textContent = originalText;
+        }
+      }, 1000);
+
+      // ซ่อนข้อความหลัง 3 วินาที
+      setTimeout(() => {
+        otpStatus.textContent = "";
+        otpStatus.classList.add("hidden");
+      }, 3000);
+    }
+  } catch(err) {
+    console.error(err);
+    showError(otpInput, otpError, "เกิดข้อผิดพลาดในการส่ง OTP");
+  }
+});
+
+// ฟังก์ชันตรวจสอบ OTP
+async function verifyOtp() {
+  const otp = otpInput.value.trim();
+  const email = emailInput.value.trim();
+  hideError(otpInput, otpError);
+
+  if(!otp) {
+    showError(otpInput, otpError, "กรุณากรอก OTP");
+    return false;
+  }
+
+  try {
+    const res = await fetch("/verify-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp })
+    });
+
+    const data = await res.json();
+    if(data.valid) {
+      return true;
+    } else {
+      showError(otpInput, otpError, data.message); // แสดงข้อความ OTP ไม่ถูกต้อง / หมดอายุ
+      return false;
+    }
+  } catch(err) {
+    console.error(err);
+    showError(otpInput, otpError, "เกิดข้อผิดพลาดในการตรวจสอบ OTP");
+    return false;
+  }
+}
+
+async function validateForm(e) {
+  e.preventDefault(); // ป้องกัน submit ทันที
+
+  let valid = true;
+
+  // ซ่อน error เก่า
+  hideError(usernameInput, usernameError);
+  hideError(passwordInput, passwordErrorFormat);
+  hideError(confirmPasswordInput, passwordError);
+  hideError(otpInput, otpError);
+
+  // ตรวจ username/password/confirm/email/otp
+  if(usernameInput.value.trim() === "") { 
+    showError(usernameInput, usernameError, "กรุณากรอกชื่อผู้ใช้"); 
+    valid=false; 
+  } else if(!usernameRegex.test(usernameInput.value.trim())){
+    showError(usernameInput, usernameError, "ชื่อผู้ใช้ต้องเป็นตัวอักษรภาษาอังกฤษ");
+    valid=false;
+  }
+
+  const pwdErrorMsg = validatePasswordComplexity(passwordInput.value);
+  if(pwdErrorMsg) {
+    showError(passwordInput, passwordErrorFormat, pwdErrorMsg);
+    valid = false;
+  }
+
+  if(confirmPasswordInput.value === "") { 
+    showError(confirmPasswordInput, passwordError, "กรุณายืนยันรหัสผ่าน"); 
+    valid=false; 
+  }
+  
+  if(confirmPasswordInput.value !== passwordInput.value) { 
+    showError(confirmPasswordInput, passwordError, "รหัสผ่านไม่ตรงกัน"); 
+    valid=false; 
+  }
+
+  if(emailInput.value.trim() === "") { 
+    showError(emailInput, emailError, "กรุณากรอกอีเมล"); 
+    valid=false; 
+  }
+
+  if(otpInput.value.trim() === "") { 
+    showError(otpInput, otpError, "กรุณากรอก OTP"); 
+    valid=false; 
+  }
+
+  if(!valid) return false;
+
+  const otpValid = await verifyOtp();
+  if(!otpValid) return false;
+
+  e.target.submit();
+}
+</script>
+</body>
+</html>

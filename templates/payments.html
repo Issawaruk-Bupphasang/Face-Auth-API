@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>💰 ชำระเงิน - Morris API</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+html, body {
+ margin: 0;
+ padding: 0;
+ height: 100%;
+ width: 100%;
+ overflow-x: hidden;
+ font-family: 'Inter', sans-serif;
+ background: radial-gradient(circle at top left, #0f172a, #020617 70%);
+ color: #e0e0e0;
+ display: flex;
+ flex-direction: column;
+}
+
+body {
+ min-height: 100vh;
+ overflow-y: auto;
+}
+
+.glass {
+ background: rgba(255,255,255,0.05);
+ backdrop-filter: blur(12px);
+ border: 1px solid rgba(255,255,255,0.1);
+}
+.neon-border {
+ border: 1px solid transparent;
+ background-clip: padding-box;
+ box-shadow: 0 0 12px rgba(59,130,246,0.6),
+    0 0 24px rgba(168,85,247,0.5);
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+ nav, main, header { padding-left: 1rem; padding-right: 1rem; }
+ h1 { font-size: 2.25rem; }
+}
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+ <nav class="flex justify-between items-center px-8 py-4 glass sticky top-0 z-50 shadow-lg">
+ <a href="/api" class="text-2xl font-bold tracking-wide bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+ Morris API
+ </a>
+ <span class="bg-green-900/30 text-green-300 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+ ⚡ Credit : {{ token_uses_left }}
+ </span>
+</nav>
+
+ <header class="text-center py-12">
+ <h1 class="text-4xl font-extrabold bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 bg-clip-text text-transparent drop-shadow-lg">
+ ดำเนินการชำระเงิน
+ </h1>
+ <p class="mt-2 text-gray-400">กรุณาสแกน QR Code เพื่อโอนเงิน ระบบจะยืนยันอัตโนมัติ</p>
+</header>
+
+ <main class="flex-grow flex flex-col items-center px-6 pb-16">
+ <section class="w-full max-w-xl flex flex-col glass rounded-2xl p-6 sm:p-8 space-y-8 neon-border relative">
+
+   <div class="border-b border-gray-700 pb-4 space-y-2">
+  <h2 class="text-2xl font-bold flex items-center gap-2 text-yellow-400">
+  <i data-lucide="receipt" class="w-6 h-6"></i> สรุปคำสั่งซื้อ
+  </h2>
+  <div class="flex justify-between text-lg text-gray-300 pt-2">
+  <span>จำนวนเครดิต:</span>
+  <span class="font-semibold">{{ credit_amount }} เครดิต</span>
+  </div>
+  <div class="flex justify-between text-xl pt-2">
+  <span class="font-bold">ยอดรวมสุทธิ:</span>
+  <span class="font-extrabold text-yellow-400" id="total_price_display">{{ total_price }} บาท</span>
+  </div>
+ </div>
+
+   <div class="space-y-6">
+  <h2 class="text-2xl font-bold flex items-center gap-2 text-purple-400">
+  <i data-lucide="wallet" class="w-6 h-6"></i> วิธีการชำระเงิน
+   </h2>
+
+    <div class="glass p-5 rounded-xl border border-purple-500/30 shadow-xl space-y-4">
+  <button onclick="togglePaymentDetails('qr_details')" 
+    class="w-full text-left font-semibold text-lg flex justify-between items-center text-white hover:text-purple-300 transition">
+   <span>🏦 PromptPay QR Code (แนะนำ)</span>
+   <i data-lucide="chevron-down" class="w-5 h-5 transition transform" id="qr_details_icon"></i>
+  </button>
+  
+  <div id="qr_details" class="mt-4 space-y-4 hidden pt-4 border-t border-gray-700">
+    <p class="text-red-400 font-semibold text-sm">❗ กรุณาโอนยอด {{ total_price }} บาท ให้ตรงตามจำนวน</p>
+    
+    <div class="flex justify-center flex-col items-center p-4 bg-gray-900/50 rounded-lg">
+      
+      <!-- START: NEW Logo and Instruction Section -->
+      <div class="text-center mb-4 p-2 rounded-lg bg-yellow-600/20 w-full max-w-sm">
+        <div class="flex items-center justify-center text-yellow-300 font-extrabold text-xl gap-2">
+          <!-- Placeholder for custom PromptPay Logo -->
+          <img src="/static/promptpay_logo.png" alt="PromptPay Logo" class="w-8 h-8 object-contain">
+          <span class="tracking-widest">PromptPay</span>
+        </div>
+        <p class="text-xs text-yellow-400 mt-1">สำหรับใช้ในแอปมือถือของธนาคาร</p>
+      </div>
+      <!-- END: NEW Logo and Instruction Section -->
+      
+      <img src="{{ qr_code_base64 }}" alt="PromptPay QR Code" 
+                id="promptpay_qr_img"
+        class="w-48 h-48 border border-gray-600 rounded-lg p-2 bg-white/10 backdrop-blur-sm">
+            
+            <!-- START: QR Code Error Message (Hidden by default) -->
+            <div id="qr_error_message" class="hidden text-center p-4 rounded-lg bg-red-900/40 border border-red-700 mt-4 max-w-sm w-full">
+                <p class="text-red-400 font-bold flex items-center justify-center gap-2">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                    QR Code ไม่สามารถสร้างได้
+                </p>
+                <p class="text-sm text-red-300 mt-1">
+                    กรุณาตรวจสอบ Console Log (Python) เพื่อดูข้อผิดพลาด: **BASE64_FAIL**
+                </p>
+                <p class="text-xs text-gray-400 mt-2">
+                    ปัญหาอาจเกิดจากไลบรารี PromptPay, qrcode หรือ Pillow
+                </p>
+            </div>
+            <!-- END: QR Code Error Message -->
+
+      <!-- START: Amount and Timestamp Section -->
+      <div class="mt-4 text-center w-full max-w-sm p-3 bg-gray-800 rounded-lg border border-gray-700">
+        <p class="text-xl font-extrabold text-cyan-400 leading-none">
+          {{ total_price }} THB
+        </p>
+        <p class="text-xs text-gray-400 mt-1">
+          เวลาที่สร้าง: <span id="current_timestamp" class="font-medium text-gray-300"></span>
+        </p>
+      </div>
+      <!-- END: Amount and Timestamp Section -->
+      
+      <p class="mt-2 text-sm text-gray-500">รหัสคำสั่งซื้อ: <span class="text-white font-medium" id="order_id_display">{{ order_id }}</span></p>
+    </div>
+
+    <!-- สถานะการรอ/ความสำเร็จ -->
+    <div id="status_message">
+     <div id="status_pending" class="w-full bg-blue-900/40 border-l-4 border-blue-500 p-3 rounded-lg flex items-center gap-3 mt-4">
+      <i data-lucide="loader" class="w-5 h-5 text-blue-300 animate-spin"></i>
+      <span class="text-blue-300 font-medium">กำลังรอการชำระเงิน... (ระบบตรวจสอบอัตโนมัติ)</span>
+     </div>
+    </div>
+  </div>
+
+    <div class="glass p-5 rounded-xl border border-gray-500/30 shadow-md opacity-50 cursor-not-allowed">
+  <div class="w-full text-left font-semibold text-lg flex justify-between items-center text-gray-500">
+   <span>💳 บัตรเครดิต/เดบิต (เร็วๆ นี้)</span>
+   <i data-lucide="lock" class="w-5 h-5"></i>
+  </div>
+  </div>
+ </div>
+ 
+   <p class="text-xs text-gray-500 text-center pt-4">การทำธุรกรรมทั้งหมดถูกเข้ารหัสอย่างปลอดภัย</p>
+ </section>
+ 
+  <div class="mt-12 text-center">
+ <a href="/account" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition text-lg font-medium">
+  <i data-lucide="arrow-left" class="w-5 h-5"></i> กลับไปหน้าบัญชี
+ </a>
+ </div>
+
+</main>
+
+<script>
+ lucide.createIcons();
+ 
+ const ORDER_ID = '{{ order_id }}';
+ let pollInterval = null;
+
+ // Function to format the current time as DD.MM.YYYY HH:MM (Thai Buddhist year)
+ function formatThaiTimestamp(date) {
+  const year = date.getFullYear() + 543; // Thai Buddhist year conversion
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
+ }
+
+ // Function to toggle payment details (Accordion effect)
+ function togglePaymentDetails(id) {
+ const details = document.getElementById(id);
+ const icon = document.getElementById(id + '_icon');
+
+ if (details.classList.contains('hidden')) {
+  details.classList.remove('hidden');
+  icon.classList.add('rotate-180');
+  // Start polling only when QR is shown
+  if (id === 'qr_details') {
+  startPolling();
+  }
+ } else {
+  details.classList.add('hidden');
+  icon.classList.remove('rotate-180');
+  // Stop polling when QR is hidden
+  stopPolling();
+ }
+ }
+
+ // Polling Logic to check payment status against the backend
+ async function pollPaymentStatus() {
+  if (!ORDER_ID) return stopPolling();
+  
+  try {
+   // Note: Polling uses exponential backoff to handle throttling gracefully.
+   const maxRetries = 5;
+   const initialDelay = 1000; // 1 second
+   
+   for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const response = await fetch(`/payment_status/${ORDER_ID}`);
+    
+    if (response.status === 429) { // Too Many Requests
+     const delay = initialDelay * Math.pow(2, attempt);
+     console.log(`Rate limit hit. Retrying in ${delay / 1000}s...`);
+     await new Promise(resolve => setTimeout(resolve, delay));
+     continue;
+    }
+
+    const data = await response.json();
+
+    if (data.status === 'PAID') {
+     stopPolling();
+     console.log("Payment Confirmed! Redirecting...");
+     
+     const statusDiv = document.getElementById('status_pending');
+     statusDiv.className = 'w-full bg-green-900/40 border-l-4 border-green-500 p-3 rounded-lg flex items-center gap-3 mt-4';
+     statusDiv.innerHTML = '<i data-lucide="check-check" class="w-5 h-5 text-green-300"></i><span class="text-green-300 font-medium">✅ ชำระเงินสำเร็จ! กำลังอัปเดตเครดิต...</span>';
+     lucide.createIcons();
+     
+     setTimeout(() => {
+      window.location.href = '/payment_success';
+     }, 1500);
+     return;
+    } else if (data.status === 'NOT_FOUND' || data.status === 'EXPIRED') {
+     stopPolling();
+     console.warn("Order not found or expired. Please start a new transaction.");
+     return;
+    }
+    // If status is PENDING, we continue to the next poll interval (outside the loop)
+    break; 
+   }
+
+  } catch (error) {
+   console.error("Polling error:", error);
+  }
+ }
+
+ function startPolling() {
+  if (pollInterval === null) {
+   // เริ่ม Polling ทุก 3 วินาที (3000ms)
+   pollInterval = setInterval(pollPaymentStatus, 3000);
+   console.log("Payment Polling started.");
+   // เรียกครั้งแรกทันที
+   pollPaymentStatus();
+  }
+ }
+
+ function stopPolling() {
+  if (pollInterval !== null) {
+   clearInterval(pollInterval);
+   pollInterval = null;
+   console.log("Payment Polling stopped.");
+  }
+ }
+ 
+ // โหลดฟังก์ชันเมื่อหน้าเว็บโหลดเสร็จ
+ window.onload = () => {
+  lucide.createIcons();
+
+  // NEW: ตรวจสอบและแสดงข้อความแจ้งเตือน หาก QR Code ไม่ถูกสร้าง
+    const qrImage = document.getElementById('promptpay_qr_img');
+    const qrErrorDiv = document.getElementById('qr_error_message');
+
+    // ตรวจสอบว่า src attribute ว่างเปล่าหรือไม่ (ซึ่งหมายความว่า Python function ล้มเหลวและส่งค่าว่างมา)
+    if (qrImage && qrImage.getAttribute('src') === '') {
+        qrImage.classList.add('hidden'); // ซ่อนรูปภาพที่เสีย
+        qrErrorDiv.classList.remove('hidden'); // แสดงข้อความแจ้งเตือน
+        stopPolling(); // หยุด Polling เพราะไม่มี QR ให้สแกน
+    } else {
+        // NEW: แสดงเวลาที่สร้างคำสั่งซื้อ
+        const timestampElement = document.getElementById('current_timestamp');
+        if (timestampElement) {
+            // Use the current time when the page loads as the creation time
+            timestampElement.textContent = formatThaiTimestamp(new Date());
+        }
+    }
+
+  
+  // Logic เพื่อเริ่ม Polling อัตโนมัติเมื่อโหลดหน้า
+  if ('{{ current_status }}' === 'PAID') {
+   // If the status is already PAID when loading (unlikely in this flow), redirect.
+   window.location.href = '/payment_success';
+  } else if ('{{ current_status }}' === 'PENDING' && qrImage.getAttribute('src') !== '') {
+   // If the order is pending AND the QR code is present, open details and start polling automatically.
+   togglePaymentDetails('qr_details');
+  }
+ };
+ 
+</script>
+</body>
+</html>

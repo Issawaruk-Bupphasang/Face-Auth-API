@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>🚀 Account Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at top left, #0f172a, #020617 70%);
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body {
+    min-height: 100vh;
+    overflow-y: auto; /* ให้ pull-to-refresh ใช้งานได้ */
+  }
+
+  .glass {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .neon-border {
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    box-shadow: 0 0 12px rgba(59,130,246,0.6),
+                0 0 24px rgba(168,85,247,0.5);
+  }
+  .pulse-text { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
+
+  /* Mobile adjustments */
+  @media (max-width: 640px) {
+    nav, main, header { padding-left: 1rem; padding-right: 1rem; }
+    section { padding: 1.5rem; }
+    h1 { font-size: 2.25rem; }
+  }
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Navigation -->
+  <nav class="flex justify-between items-center px-8 py-4 glass sticky top-0 z-50 shadow-lg">
+    <a href="/api" class="text-2xl font-bold tracking-wide bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+      Morris API
+    </a>
+
+    <div class="flex items-center space-x-4">
+      <!-- Credit -->
+      <span class="bg-green-900/30 text-green-300 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+        ⚡ Credit : {{ token_uses_left }}
+      </span>
+
+      <div class="relative group">
+        <!-- ปุ่ม -->
+        <button class="bg-gray-800 px-4 py-1.5 rounded-full hover:bg-gray-700 transition">
+          {{ user }}
+        </button>
+
+        <!-- Dropdown -->
+        <div class="absolute right-0 top-full mt-0 w-56 glass rounded-lg shadow-xl
+                    opacity-0 scale-95 pointer-events-none transition transform origin-top-right
+                    group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto z-50">
+          <div class="px-4 py-3 border-b border-gray-700">
+            <p class="font-semibold">{{ user }}</p>
+            <p class="text-xs text-gray-400">{{ email }}</p>
+          </div>
+          <a href="/account" class="block px-4 py-2 hover:bg-gray-700">⚙ My Account</a>
+          <a href="/logout" class="block px-4 py-2 hover:bg-red-700 text-red-400">🚪 Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero / Title -->
+  <header class="text-center py-16">
+    <h1 class="text-5xl font-extrabold bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg pulse-text">
+      My Account
+    </h1>
+    <p class="mt-3 text-gray-400">Securely manage your account and password</p>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-grow flex flex-col items-center px-6 pb-16">
+    <section class="w-full max-w-3xl flex flex-col glass rounded-2xl p-4 sm:p-8 space-y-6 neon-border relative">
+
+      <!-- Decorative Glow Circle -->
+      <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-600/30 rounded-full blur-3xl animate-pulse"></div>
+
+      <!-- Avatar -->
+      <div class="flex justify-center mb-6">
+        <div class="w-20 sm:w-28 h-20 sm:h-28 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center shadow-xl flex-shrink-0">
+          <i data-lucide="user" class="text-white w-10 sm:w-14 h-10 sm:h-14"></i>
+        </div>
+      </div>
+
+      <!-- User Info -->
+      <div class="text-center space-y-1 sm:space-y-2">
+        <p class="text-xl font-semibold flex justify-center items-center truncate max-w-full">
+          <i data-lucide="user-circle" class="w-5 h-5 mr-2 text-gray-400 flex-shrink-0"></i>
+          {{ user }}
+        </p>
+        <p class="text-lg text-gray-300 flex justify-center items-center truncate max-w-full">
+          <i data-lucide="mail" class="w-5 h-5 mr-2 text-gray-400 flex-shrink-0"></i>
+          {{ email }}
+        </p>
+      </div>
+
+      <!-- Actions -->
+      <div class="mt-6 flex justify-center flex-wrap gap-4 w-full">
+        <form action="/change_password" method="get" class="flex justify-center w-full max-w-xs">
+          <button class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 px-4 py-2 rounded-lg font-semibold shadow-lg hover:opacity-80 transition min-w-0">
+            <i data-lucide="lock" class="w-5 h-5 flex-shrink-0"></i> เปลี่ยนรหัสผ่าน
+          </button>
+        </form>
+      </div>
+
+      <!-- Activation Status -->
+      {% if activated == 0 %}
+      <div class="mt-10 text-center space-y-4">
+        <form action="/update_email" method="post" class="space-y-3">
+          <input type="email" name="new_email" required placeholder="กรอกอีเมลใหม่"
+                 class="w-full max-w-sm border border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none glass text-gray-200"/>
+          <button type="submit" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-2 rounded-lg font-semibold shadow-lg hover:opacity-80 transition">
+            <i data-lucide="edit-3" class="w-5 h-5"></i> แก้ไขอีเมล
+          </button>
+        </form>
+
+        <form action="/send-activation" method="post">
+          <button type="submit" class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-400 px-6 py-3 rounded-lg font-semibold shadow-lg hover:opacity-80 transition">
+            <i data-lucide="check-circle" class="w-5 h-5"></i> ยืนยันอีเมลของฉัน
+          </button>
+        </form>
+
+        {% if request.session.get("flash") %}
+        <div class="mt-4 p-3 rounded-lg bg-green-900/40 text-green-300">
+          {{ request.session.pop("flash") }}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </section>
+  </main>
+  <script>
+    lucide.createIcons();
+    
+    function setFullHeight() {
+      document.body.style.height = window.innerHeight + 'px';
+    }
+    window.addEventListener('resize', setFullHeight);
+    window.addEventListener('load', setFullHeight);
+  </script>
+</body>
+</html>

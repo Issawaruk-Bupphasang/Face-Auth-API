@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🚀 เข้าสู่ระบบ</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+
+<style>
+  html {
+    margin: 0;
+    padding: 0;
+    height: auto;   /* เต็ม viewport จริงบนมือถือ */
+    width: auto;
+    overflow-x: hidden;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100dvh; /* เต็มความสูง viewport จริง */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto; /* ให้ pull-to-refresh ทำงาน */
+    overflow-x: hidden;
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at top left, #0f172a, #020617 70%);
+    color: #e0e0e0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .glass {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .neon-border {
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    box-shadow: 0 0 12px rgba(59,130,246,0.6),
+                0 0 24px rgba(168,85,247,0.5);
+  }
+  .pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
+  .error-border { border-color: #f87171 !important; }
+
+  .group {position: relative;flex: 1;}
+
+.group input {
+  width: 100%;
+  padding: 16px 10px 8px 5px; /* padding-top เผื่อ label ลอย */
+  border: none;
+  border-bottom: 1px solid #666;
+  background: transparent;
+  color: #e0e0e0;
+  outline: none;
+  line-height: 1.25rem;
+  display: block;
+}
+
+  .group label {
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 16px;
+    pointer-events: none;
+    transition: transform 0.2s ease, color 0.2s ease;
+    transform-origin: left top;
+  }
+
+  .group input:focus ~ label,
+  .group input:not(:placeholder-shown) ~ label {
+    transform: translateY(-150%) scale(0.875);
+    color: #a855f7;
+  }
+
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+      border-width: 2px;
+      border-bottom-color: #a855f7;
+  }
+
+  .error-border {
+    border-color: #f87171 !important;
+  }
+</style>
+</head>
+<body class="flex items-center justify-center h-screen px-4 sm:px-6 lg:px-8">
+
+<div class="w-full max-w-sm sm:max-w-md glass neon-border rounded-2xl shadow-xl p-6 sm:p-8 relative">
+  <div class="absolute -top-6 -right-6 w-20 h-20 sm:w-24 sm:h-24 bg-purple-600/30 rounded-full blur-3xl pulse"></div>
+
+ <h2 class="text-2xl sm:text-3xl font-bold text-center mb-6 bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
+    เข้าสู่ระบบ
+  </h2>
+
+  <form action="/auth/login" method="POST" onsubmit="return validateLogin(event);" class="space-y-4" novalidate>
+    <!-- Username or Email -->
+    <div class="mb-4 relative">
+      <div class="flex items-center relative">
+        <!-- * สีแดง absolute -->
+        <span class="text-red-500 text-lg absolute left-0 top-1/2 -translate-y-1/2 -ml-3">*</span>
+        <div class="group flex-1">
+          <!-- ใช้ name="identifier" เพื่อรองรับทั้ง username และ email -->
+          <input type="text" id="identifier" name="identifier" placeholder=" " required class="pl-5 w-full" />
+          <label for="identifier">Username or Email</label>
+        </div>
+      </div>
+      <div id="identifier-error" class="text-sm text-red-400 hidden mt-1 ml-1"></div>
+    </div>
+
+    <!-- Password -->
+    <div class="mb-4 relative">
+      <div class="flex items-center relative">
+        <!-- * สีแดง absolute -->
+        <span class="text-red-500 text-lg absolute left-0 top-1/2 -translate-y-1/2 -ml-3">*</span>
+
+        <div class="group flex-1 relative">
+          <input type="password" id="password" name="password" placeholder=" " required class="pl-5 w-full" />
+          <label for="password">Password</label>
+
+          <!-- ปุ่ม toggle password -->
+          <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300"
+                  onclick="togglePassword('password', this)">
+            <!-- icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="password-error" class="text-sm text-red-400 hidden mt-1 ml-1"></div>
+    </div>
+
+    <!-- Submit -->
+    <div class="flex flex-col">
+      <input type="submit" value="เข้าสู่ระบบ"
+            class="w-full py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-80 transition cursor-pointer" />
+      <div class="mt-1 text-sm text-left w-auto inline-block {% if not message and not error %}hidden{% endif %}">
+        {% if message %}
+          <div class="text-green-400">
+            {{ message }}
+          </div>
+        {% endif %}
+        {% if error %}
+          <div class="text-red-400">
+            {{ error }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+
+  <p class="text-sm flex justify-between mt-4">
+    <a href="/register" class="text-purple-400 hover:underline">สมัครสมาชิก</a>
+    <a href="/forgot-password" class="text-purple-400 hover:underline">ลืมรหัสผ่าน?</a>
+  </p>
+</div>
+
+<script>
+const usernameInput = document.getElementById("identifier");
+const passwordInput = document.getElementById("password");
+const usernameError = document.getElementById("identifier-error");
+const passwordError = document.getElementById("password-error");
+
+function showError(inputElem, errorDiv, message) {
+  errorDiv.textContent = message;
+  errorDiv.classList.remove("hidden");
+  inputElem.classList.add("error-border");
+}
+function hideError(inputElem, errorDiv) {
+  errorDiv.classList.add("hidden");
+  inputElem.classList.remove("error-border");
+}
+
+usernameInput.addEventListener("input", () => hideError(usernameInput, usernameError));
+passwordInput.addEventListener("input", () => hideError(passwordInput, passwordError));
+
+function validateLogin(e) {
+  let valid = true;
+
+  hideError(usernameInput, usernameError);
+  hideError(passwordInput, passwordError);
+
+  if (usernameInput.value.trim() === "") {
+    showError(usernameInput, usernameError, "กรุณากรอกชื่อผู้ใช้");
+    valid = false;
+  }
+
+  if (passwordInput.value.trim() === "") {
+    showError(passwordInput, passwordError, "กรุณากรอกรหัสผ่าน");
+    valid = false;
+  }
+
+  if (!valid) {
+    e.preventDefault();
+    return false;
+  }
+  return true;
+}
+
+function togglePassword(id, btn) {
+  const input = document.getElementById(id);
+  const isPassword = input.type === "password";
+  input.type = isPassword ? "text" : "password";
+  btn.innerHTML = isPassword
+    ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+               d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 012.223-3.676M6.477 6.477A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.373 2.53M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+               d="M3 3l18 18" />
+       </svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+               d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
+       </svg>`;
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const successMsg = document.querySelector(".text-green-400");
+  const errorMsgs = document.querySelectorAll(".text-red-400");
+
+  if (successMsg) {
+    setTimeout(() => {
+      successMsg.remove();
+    }, 5000);
+  }
+
+  if (errorMsgs.length > 0) {
+    errorMsgs.forEach(msg => {
+      setTimeout(() => {
+        msg.remove();
+      }, 5000);
+    });
+  }
+});
+</script>
+</body>
+</html>

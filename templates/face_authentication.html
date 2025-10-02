@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>🚀 Face Authentication API</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: radial-gradient(circle at top left, #0f172a, #020617 70%);
+      font-family: 'Inter', sans-serif;
+    }
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .neon-border {
+      border: 1px solid transparent;
+      background-clip: padding-box;
+      box-shadow: 0 0 12px rgba(59,130,246,0.6),
+                  0 0 24px rgba(168,85,247,0.5);
+    }
+  </style>
+</head>
+<body class="text-gray-100 min-h-screen flex flex-col">
+
+  <!-- Navigation -->
+  <nav class="flex justify-between items-center px-8 py-4 glass sticky top-0 z-50">
+    <a href="/api" class="text-2xl font-bold tracking-wide bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+      Morris API
+    </a>
+
+    <div class="flex items-center space-x-4">
+      <!-- Token Uses Left -->
+      <span class="bg-green-900/30 text-green-300 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+        ⚡ Credit : {{ token_uses_left }}
+      </span>
+
+      <div class="relative group">
+        <!-- ปุ่ม -->
+        <button class="bg-gray-800 px-4 py-1.5 rounded-full hover:bg-gray-700 transition">
+          {{ user }}
+        </button>
+
+        <!-- Dropdown -->
+        <div class="absolute right-0 top-full mt-0 w-56 glass rounded-lg shadow-xl
+                    opacity-0 scale-95 pointer-events-none transition transform origin-top-right
+                    group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto z-50">
+          <div class="px-4 py-3 border-b border-gray-700">
+            <p class="font-semibold">{{ user }}</p>
+            <p class="text-xs text-gray-400">{{ email }}</p>
+          </div>
+          <a href="/account" class="block px-4 py-2 hover:bg-gray-700">My Account</a>
+          <a href="/logout" class="block px-4 py-2 hover:bg-red-700 text-red-400">Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="text-center py-16">
+    <h1 class="text-5xl font-extrabold bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg animate-pulse">
+      Face Authentication API
+    </h1>
+    <p class="mt-3 text-gray-400 text-lg font-medium">Documentation for next-gen biometric authentication via WebSocket</p>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-grow flex flex-col items-center px-6 pb-16">
+    
+    <section class="w-full max-w-5xl glass rounded-2xl p-8 space-y-8 neon-border">
+      
+      <!-- Endpoint & Token Container -->
+      <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg space-y-6">
+
+        <!-- Endpoint -->
+        <div>
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Endpoint</h5>
+          <div class="flex items-center justify-between bg-gray-900 px-3 py-2 rounded-lg">
+            <code id="ws-endpoint" class="text-cyan-400 text-sm break-all"></code>
+            <button onclick="copyEndpoint()" 
+              class="ml-3 px-3 py-1 text-xs bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded hover:opacity-80 transition">
+              Copy
+            </button>
+          </div>
+        </div>
+
+        <!-- API Token -->
+        <div>
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">API Token</h5>
+          <div class="flex items-center justify-between bg-gray-900 px-3 py-2 rounded-lg">
+            <code id="api-token" class="text-purple-400 text-sm break-all">{{ token }}</code>
+            <button onclick="copyToken()" 
+              class="ml-3 px-3 py-1 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded hover:opacity-80 transition">
+              Copy
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Code Samples Container -->
+      <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg space-y-4">
+
+        <!-- Section Title -->
+        <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Usage Code Samples</h5>
+
+        <!-- Tabs -->
+        <div class="flex space-x-2">
+          <button onclick="showTab('verify')" id="btn-verify"
+            class="px-4 py-1.5 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md">
+            Verify
+          </button>
+          <button onclick="showTab('register')" id="btn-register"
+            class="px-4 py-1.5 text-sm rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600">
+            Register
+          </button>
+        </div>
+
+        <!-- Code Box -->
+        <div class="relative">
+          <pre id="code-box" class="bg-gray-900 text-green-300 text-xs rounded-lg p-4 overflow-x-auto whitespace-pre-wrap shadow-inner"></pre>
+          <button onclick="copyCode()" 
+            class="absolute top-2 right-2 px-3 py-1 text-xs bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded hover:opacity-80 transition">
+            Copy
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Request Parameters -->
+      <div>
+        <h3 class="text-xl font-semibold mb-2">Request Parameters</h3>
+
+        <!-- Header Parameters -->
+        <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Header Parameters</h5>
+          <div class="overflow-x-auto">
+            <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden shadow-inner">
+              <thead class="bg-gray-800 text-gray-300">
+                <tr>
+                  <th class="px-4 py-2 text-left w-2/4">Name</th>
+                  <th class="px-4 py-2 text-left w-3/4">Description</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-400">
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2">token</td>
+                  <td class="px-4 py-2 text-green-400">String</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Body Parameters -->
+        <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Body Parameters</h5>
+          <div class="overflow-x-auto">
+            <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden shadow-inner">
+              <thead class="bg-gray-800 text-gray-300">
+                <tr>
+                  <th class="px-4 py-2 text-left w-2/4">Name</th>
+                  <th class="px-4 py-2 text-left w-3/4">Description</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-400">
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">body</td>
+                  <td class="px-4 py-2 text-green-400">
+        <pre class="whitespace-pre-wrap">{
+  "request_id": "&lt; string &gt;",
+  "img_base64": "&lt; base64 encoded string &gt;"
+}</pre>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Response Parameters -->
+        <h4 class="text-xl font-semibold mb-1">Response Parameters</h4>
+        <div class="overflow-x-auto mb-4">
+          <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden">
+            <thead class="bg-gray-800 text-gray-300">
+              <tr>
+                <th class="px-4 py-2 text-left w-2/4">Status</th>
+                <th class="px-4 py-2 text-left w-3/4">Description</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-400">
+              <tr class="border-t border-gray-700 hover:bg-gray-800">
+                <td class="px-4 py-2 align-top">200</td>
+                <td class="px-4 py-2 align-top text-green-400">API Request Successful</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
+          <h4 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Body Parameters</h4>
+          <div class="overflow-x-auto">
+            <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden shadow-inner">
+              <thead class="bg-gray-800 text-gray-300">
+                <tr>
+                  <th class="px-4 py-2 text-left w-2/4">Name</th>
+                  <th class="px-4 py-2 text-left w-3/4">Description</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-400">
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">body</td>
+                  <td class="px-4 py-2 text-green-400">
+        <pre class="whitespace-pre-wrap">{
+  "request_id": "&lt; string &gt;",
+  "user_id", "&lt; int &gt;",
+  "subuser_id", "&lt; int &gt;
+  "success": "&lt; boolean &gt;",
+  "message": "&lt; string &gt;",
+  "confidence": "&lt; float &gt;",
+  "spoof_confidence": "&lt; float &gt;",
+  "faces_detected": "&lt; int &gt;",
+  "timestamp": "&lt; string &gt;",
+  "error_code": "&lt; int &gt;"
+}</pre>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Field Details -->
+        <h4 class="text-xl font-semibold mb-1">Field Details</h4>
+
+        <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Request Field Details</h5>
+          <div class="overflow-x-auto">
+            <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden shadow-inner">
+              <thead class="bg-gray-800 text-gray-300">
+                <tr>
+                  <th class="px-4 py-2 text-left w-2/4">Fields</th>
+                  <th class="px-4 py-2 text-left w-3/4">Values / Description</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-400">
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">request_id</td>
+                  <td class="px-4 py-2 text-green-400">Unique request ID used for processing requests</td>
+                </tr>
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">img_base64</td>
+                  <td class="px-4 py-2 text-green-400">Base64 encoded string</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Response Field Details</h5>
+          <div class="overflow-x-auto">
+            <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden shadow-inner">
+              <thead class="bg-gray-800 text-gray-300">
+                <tr>
+                  <th class="px-4 py-2 text-left w-2/4">Fields</th>
+                  <th class="px-4 py-2 text-left w-3/4">Values / Description</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-400">
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">request_id</td>
+                  <td class="px-4 py-2 text-green-400">The corresponding request identifier</td>
+                </tr>
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">user_id</td>
+                  <td class="px-4 py-2 text-green-400">Unique identifier of the user associated with the request</td>
+                </tr>
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">subuser_id</td>
+                  <td class="px-4 py-2 text-green-400">Unique identifier of the subuser created during registration</td>
+                </tr>
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">success</td>
+                  <td class="px-4 py-2 text-green-400">Indicates whether the operation was successful</td>
+                </tr>
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">message</td>
+                  <td class="px-4 py-2 text-green-400">A descriptive message about the result</td>
+                </tr>
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">confidence</td>
+                  <td class="px-4 py-2 text-green-400">The confidence score of the face recognition</td>
+                </tr>
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">spoof_confidence</td>
+                  <td class="px-4 py-2 text-green-400">The confidence score of the spoofing detection</td>
+                </tr>
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">faces_detected</td>
+                  <td class="px-4 py-2 text-green-400">The number of faces detected in the frame</td>
+                </tr>
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">timestamp</td>
+                  <td class="px-4 py-2 text-green-400">The time when the response was generated</td>
+                </tr>
+                <tr class="border-t border-gray-700 hover:bg-gray-800">
+                  <td class="px-4 py-2 align-top">error_code</td>
+                  <td class="px-4 py-2 text-green-400">The error code if any issue occurred</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" 
+       class="fixed bottom-6 right-6 bg-black/80 text-white text-sm px-4 py-2 rounded-lg shadow-lg opacity-0 pointer-events-none transition duration-500">
+  </div>
+
+<script>
+  let wsUrl = ""; // ตัวแปร global สำหรับ endpoint
+
+  function makePage(mode, token=null) {
+    const url = (window.location.protocol === "https:" ? "wss://" : "ws://") 
+                  + window.location.host 
+                  + (mode === "register" ? "/api/ws/face-register/" : "/api/ws/face-verify/");
+
+    return `
+<!DOCTYPE html>
+<html>
+<head><title>Face ${mode === "register" ? "Register" : "Verify"}</title></head>
+<body>
+  <video id="video" autoplay muted width="320" height="240" style="transform: scaleX(-1);"></video>
+  <div id="status" style="margin-top:10px; font-weight:bold; font-size:1.2em;"></div>
+  <script>
+    const CONFIG ={
+      wsUrl: "${url}"${token ? `,
+      token: "${token}"` : ""
+      }};
+    const ws = new WebSocket(CONFIG.wsUrl);
+    const status = document.getElementById('status');
+
+    navigator.mediaDevices.getUserMedia({video:true})
+      .then(s => video.srcObject = s)
+      .catch(console.error);
+
+    ws.onopen = () => {
+      if(CONFIG.token) ws.send(JSON.stringify({token: CONFIG.token}));
+      sendFrame();
+    };
+
+    ws.onmessage = e => {
+      try {
+        const d = JSON.parse(e.data);
+        const body = d.body || {};
+        status.textContent = body.success
+          ? "✅ Face ${mode === "register" ? "registration" : "verification"} successful!"
+          : "❌ Face ${mode === "register" ? "registration" : "verification"} failed: " + (body.message || "Unknown reason");
+        status.style.color = body.success ? "green" : "red";
+      } catch(err){ console.error(err, e.data); }
+      sendFrame();
+    };
+
+    function sendFrame() {
+      if(!video.videoWidth) return setTimeout(sendFrame,500);
+      const c=document.createElement('canvas'), ctx=c.getContext('2d');
+      c.width=video.videoWidth; c.height=video.videoHeight;
+      ctx.translate(c.width,0); ctx.scale(-1,1);
+      ctx.drawImage(video,0,0);
+      if(ws.readyState===1) ws.send(c.toDataURL('image/jpeg'));
+    }
+  <\/script>
+</body>
+</html>`;
+  }
+
+  const codes = {
+    verify: makePage("verify", "{{ token }}"),
+    register: makePage("register", "{{ token }}")
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    showTab("verify"); // อัปเดต wsUrl ตาม tab
+  });
+
+  function showTab(tab) {
+      const codeBox = document.getElementById("code-box");
+
+      // อัปเดต global wsUrl
+      wsUrl = tab === "register"
+          ? (window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host + "/api/ws/face-register/"
+          : (window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host + "/api/ws/face-verify/";
+
+      document.querySelector("#ws-endpoint").textContent = wsUrl;
+
+      let code = codes[tab].trim();
+
+      // highlight wsUrl
+      const wsUrlRegex = new RegExp(wsUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "g"); // escape regex
+      code = code.replace(wsUrlRegex, `<span class="text-cyan-400">${wsUrl}</span>`);
+
+      // highlight token
+      const token = "{{ token }}"; // หรือใช้ dynamic token แทน
+      const tokenRegex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "g");
+      code = code.replace(tokenRegex, `<span class="text-purple-400">${token}</span>`);
+
+      // escape HTML ที่เหลือ
+      code = code.replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                // กลับ <span> หลัง escape
+                .replace(/&lt;(\/?span.*?)&gt;/g, "<$1>");
+
+      codeBox.innerHTML = code;
+
+      // ปุ่ม active
+      document.getElementById("btn-verify").className =
+          tab === "verify"
+              ? "px-4 py-1.5 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md"
+              : "px-4 py-1.5 text-sm rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600";
+
+      document.getElementById("btn-register").className =
+          tab === "register"
+              ? "px-4 py-1.5 text-sm rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md"
+              : "px-4 py-1.5 text-sm rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600";
+  }
+
+  function copyEndpoint() {
+    navigator.clipboard.writeText(wsUrl).then(() => showToast("✅ Endpoint copied!"));
+  }
+  function copyToken() {
+    navigator.clipboard.writeText(document.getElementById("api-token").innerText.trim())
+      .then(() => showToast("✅ Token copied!"));
+  }
+  function copyCode() {
+    navigator.clipboard.writeText(document.getElementById("code-box").innerText)
+      .then(() => showToast("✅ Code copied!"));
+  }
+
+  function showToast(msg) {
+    const t=document.getElementById("toast");
+    t.textContent=msg;
+    t.classList.remove("opacity-0","pointer-events-none");
+    t.classList.add("opacity-100");
+    setTimeout(()=>{t.classList.remove("opacity-100");t.classList.add("opacity-0","pointer-events-none");},2000);
+  }
+</script>
+</body>
+</html>

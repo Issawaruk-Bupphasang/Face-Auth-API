@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🚀 สมัครสมาชิก</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ฟอนต์ Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top left, #0f172a, #020617 70%);
+      color: #e0e0e0;
+    }
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .neon-border {
+      border: 1px solid transparent;
+      background-clip: padding-box;
+      box-shadow: 0 0 12px rgba(59,130,246,0.6),
+                  0 0 24px rgba(168,85,247,0.5);
+    }
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% {opacity: 1;}
+      50% {opacity: 0.6;}
+    }
+    .error-border { border-color: #f87171 !important; }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+  <div class="w-full max-w-md glass neon-border rounded-2xl shadow-xl p-8 relative">
+    <!-- Glow Effect -->
+    <div class="absolute -top-8 -right-8 w-24 h-24 bg-purple-600/30 rounded-full blur-3xl pulse"></div>
+
+    <h2 class="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
+      สมัครสมาชิก
+    </h2>
+
+    <form method="POST" onsubmit="return validateForm();" class="space-y-4" novalidate>
+
+      <!-- Username -->
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-red-500 text-lg">*</span>
+          <input type="text" id="username" name="username" autocomplete="username" required
+            placeholder="Username"
+            class="w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm glass text-gray-100 placeholder-gray-400" />
+        </div>
+        <div id="username-error" class="text-sm text-red-400 hidden mt-1"></div>
+      </div>
+
+      <!-- Password -->
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-red-500 text-lg">*</span>
+          <div class="relative w-full">
+            <input type="password" id="password" name="password" required minlength="8"
+              placeholder="Password"
+              class="w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm pr-10 glass text-gray-100 placeholder-gray-400" />
+            <button type="button" onclick="togglePassword('password', this)"
+              class="absolute inset-y-0 right-2 flex items-center text-gray-300">
+              <!-- Eye icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="password-error-format" class="text-sm text-red-400 hidden mt-1"></div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-red-500 text-lg">*</span>
+          <div class="relative w-full">
+            <input type="password" id="confirm_password" name="confirm_password" required
+              placeholder="Confirm Password"
+              class="w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm pr-10 glass text-gray-100 placeholder-gray-400" />
+            <button type="button" onclick="togglePassword('confirm_password', this)"
+              class="absolute inset-y-0 right-2 flex items-center text-gray-300">
+              <!-- Eye icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="password-error" class="text-sm text-red-400 hidden mt-1"></div>
+      </div>
+
+      <!-- Email -->
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-red-500 text-lg">*</span>
+          <input type="email" id="email" name="email" autocomplete="email" required
+            placeholder="Email"
+            class="w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm glass text-gray-100 placeholder-gray-400" />
+        </div>
+        <div id="email-error" class="text-sm text-red-400 hidden mt-1"></div>
+      </div>
+
+      <!-- Submit -->
+      <input type="submit" value="สมัครสมาชิก"
+        class="w-full py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-80 transition cursor-pointer" />
+
+    </form>
+
+    <p class="text-sm flex justify-between mt-4">
+      <a href="/login" class="text-purple-400 hover:underline">เข้าสู่ระบบ</a>
+      <a href="/forgot_password" class="text-purple-400 hover:underline">ลืมรหัสผ่าน?</a>
+    </p>
+  </div>
+
+<script>
+  const usernameInput = document.getElementById("username");
+  const passwordInput = document.getElementById("password");
+  const confirmPasswordInput = document.getElementById("confirm_password");
+  const emailInput = document.getElementById("email");
+
+  const usernameError = document.getElementById("username-error");
+  const passwordErrorFormat = document.getElementById("password-error-format");
+  const passwordError = document.getElementById("password-error");
+  const emailError = document.getElementById("email-error");
+
+  const usernameRegex = /^[A-Za-z0-9]+$/;
+  const passwordRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/;
+
+  function showError(inputElem, errorDiv, message) {
+    errorDiv.textContent = message;
+    errorDiv.classList.remove("hidden");
+    inputElem.classList.add("error-border");
+    inputElem.focus();
+  }
+
+  function hideError(inputElem, errorDiv) {
+    errorDiv.classList.add("hidden");
+    inputElem.classList.remove("error-border");
+  }
+
+  function validateForm() {
+    let valid = true;
+
+    hideError(usernameInput, usernameError);
+    hideError(passwordInput, passwordErrorFormat);
+    hideError(confirmPasswordInput, passwordError);
+    hideError(emailInput, emailError);
+
+    if (usernameInput.value.trim() === "") {
+      showError(usernameInput, usernameError, "กรุณากรอกชื่อผู้ใช้");
+      valid = false;
+    } else if (!usernameRegex.test(usernameInput.value.trim())) {
+      showError(usernameInput, usernameError, "ชื่อผู้ใช้ต้องเป็นตัวอักษรภาษาอังกฤษพิมพ์เล็กหรือพิมพ์ใหญ่เท่านั้น");
+      valid = false;
+    }
+
+    if (passwordInput.value === "") {
+      showError(passwordInput, passwordErrorFormat, "กรุณากรอกรหัสผ่าน");
+      valid = false;
+    } else if (passwordInput.value.length < 8) {
+      showError(passwordInput, passwordErrorFormat, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร");
+      valid = false;
+    } else if (!passwordRegex.test(passwordInput.value)) {
+      showError(passwordInput, passwordErrorFormat, "รหัสผ่านต้องเป็นตัวอักษรภาษาอังกฤษ ตัวเลข หรืออักษรพิเศษที่อนุญาตเท่านั้น");
+      valid = false;
+    }
+
+    if (confirmPasswordInput.value === "") {
+      showError(confirmPasswordInput, passwordError, "กรุณายืนยันรหัสผ่าน");
+      valid = false;
+    } else if (passwordInput.value !== confirmPasswordInput.value) {
+      showError(confirmPasswordInput, passwordError, "รหัสผ่านไม่ตรงกัน");
+      valid = false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailInput.value.trim() === "") {
+      showError(emailInput, emailError, "กรุณากรอกอีเมล");
+      valid = false;
+    } else if (!emailRegex.test(emailInput.value.trim())) {
+      showError(emailInput, emailError, "กรุณากรอกอีเมลให้ถูกต้อง");
+      valid = false;
+    }
+
+    return valid;
+  }
+
+  usernameInput.addEventListener("input", () => hideError(usernameInput, usernameError));
+  passwordInput.addEventListener("input", () => hideError(passwordInput, passwordErrorFormat));
+  confirmPasswordInput.addEventListener("input", () => hideError(confirmPasswordInput, passwordError));
+  emailInput.addEventListener("input", () => hideError(emailInput, emailError));
+
+  function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    const isPassword = input.type === "password";
+    input.type = isPassword ? "text" : "password";
+    btn.innerHTML = isPassword
+      ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a10.06 10.06 0 012.648-4.155M9.88 9.88A3 3 0 0114.12 14.12M4.22 4.22l15.56 15.56" />
+        </svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
+        </svg>`;
+  }
+</script>
+</body>
+</html>
