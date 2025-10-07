@@ -11,14 +11,16 @@ def save_weight(model, epoch, save_dir, file):
     
 
 def load_weight(model, file, show=True):
-    checkpoints = load(file)
+    checkpoints = load(file, map_location='cpu')
+    # checkpoints = load(file)
     if show: print("Model at epoch:", checkpoints["epoch"])
     model.load_state_dict(checkpoints["state_dict"])
     return model
 
 
 def resume_train(model, weight):
-    checkpoints = load(weight)
+    checkpoints = load(weight, map_location='cpu')
+    # checkpoints = load(weight)
     epoch = checkpoints["epoch"]
     model.load_state_dict(checkpoints["state_dict"])
     return model, epoch

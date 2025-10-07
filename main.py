@@ -32,7 +32,7 @@ from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 
 from insightface.app import FaceAnalysis
-app_arcface = FaceAnalysis(providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+app_arcface = FaceAnalysis(providers=['CPUExecutionProvider'])
 app_arcface.prepare(ctx_id=0, det_size=(160, 160))
 
 # ===== Local application imports =====
@@ -50,16 +50,21 @@ logger_register.setLevel(logging.INFO)
 logger_verify = logging.getLogger("face_verify")
 logger_verify.setLevel(logging.INFO)
 
-# ===== Security =====
-
 # ===== Environment setup =====
-load_dotenv()
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # ===== Database config =====
-from config import DB_CONFIG
+from dotenv import load_dotenv
 
+load_dotenv()
+
+DB_CONFIG = {
+    'host': os.getenv('DB_HOST'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'database': os.getenv('DB_NAME'),
+}
 # ===== FastAPI App =====
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key="testsecret123")

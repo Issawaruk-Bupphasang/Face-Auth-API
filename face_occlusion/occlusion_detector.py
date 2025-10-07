@@ -22,7 +22,8 @@ class OcclusionDetector:
             }
         }
 
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        # self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = torch.device("cpu")
 
         model_name = "VGG16"
         weight_path = self.configs["model_list"][model_name]
