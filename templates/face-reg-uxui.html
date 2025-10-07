@@ -2,15 +2,11 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>ยืนยันตัวตนด้วยใบหน้า</title>
+  <title>ลงทะเบียนใบหน้า</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * {box-sizing: border-box;margin:0;padding:0;}
 
     body {
       font-family: 'Inter', sans-serif;
@@ -41,7 +37,7 @@
       object-fit: cover;
       box-shadow: 0 12px 25px rgba(0,0,0,0.15);
       margin-bottom: 20px;
-      border: 2px solid #000000;
+      border: 2px solid #4f46e5;
       background: #000;
       transform: scaleX(-1);
     }
@@ -53,7 +49,7 @@
       border-radius: 10px;
       text-align: center;
       min-width: 260px;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
@@ -90,19 +86,14 @@
       font-weight: 500;
     }
 
-    /* Responsive */
     @media (max-width: 480px) {
-      #video {
-        height: 300px;
-      }
-      #details {
-        padding: 14px 16px;
-      }
+      #video { height: 300px; }
+      #details { padding: 14px 16px; }
     }
   </style>
 </head>
 <body>
-  <h2>ยืนยันตัวตนด้วยใบหน้า</h2>
+  <h2>ลงทะเบียนใบหน้า</h2>
   <video id="video" autoplay muted></video>
   <div id="status">กำลังเริ่มต้นกล้อง…</div>
   <div id="details">
@@ -111,10 +102,20 @@
     <div>ค่าความมั่นใจการปลอมแปลง: -</div>
     <div>เวลา: -</div>
   </div>
-
   <script>
+    if (window.opener == null && !window.name) {
+      const popup = window.open(
+        window.location.href,
+        "FaceRegisterPopup",
+        "width=350,height=550,resizable=no,menubar=no,toolbar=no,location=no,status=no"
+      );
+      if (popup) {
+        popup.name = "FaceRegisterPopup";
+        window.close();
+      }
+    }
     const CONFIG = {
-      wsUrl: "ws://localhost:8000/api/ws/face-verify/",
+      wsUrl: "ws://localhost:8000/api/ws/face-register/",
       token: "985fdf33-b7df-4945-84d2-79739097eeed"
     };
     const ws = new WebSocket(CONFIG.wsUrl);
