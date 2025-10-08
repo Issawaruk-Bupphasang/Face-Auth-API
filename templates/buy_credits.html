@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>ซื้อเครดิต - Morris API</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+html, body {
+ margin: 0; padding: 0; height: 100%; width: 100%;
+ font-family: 'Inter', sans-serif;
+ background: radial-gradient(circle at top left, #0f172a, #020617 70%);
+ color: #e0e0e0;
+}
+.glass {
+ background: rgba(255,255,255,0.05);
+ backdrop-filter: blur(12px);
+ border: 1px solid rgba(255,255,255,0.1);
+}
+.neon-border {
+ border: 1px solid transparent;
+ background-clip: padding-box;
+ box-shadow: 0 0 12px rgba(59,130,246,0.6),
+    0 0 24px rgba(168,85,247,0.5);
+}
+.package:hover {
+ transform: translateY(-5px) scale(1.02);
+ box-shadow: 0 0 15px rgba(168,85,247,0.7),
+    0 0 30px rgba(59,130,246,0.6);
+}
+</style>
+</head>
+<body class="min-h-screen">
+
+ <nav class="flex justify-between items-center px-8 py-4 glass sticky top-0 z-50 shadow-lg">
+ <a href="/api" class="text-2xl font-bold tracking-wide bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+ Morris API
+ </a>
+ <span class="bg-green-900/30 text-green-300 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+ ⚡ เครดิตคงเหลือ : {{ user.token_uses_left if user else 'N/A' }}
+ </span>
+</nav>
+
+ <header class="text-center py-12">
+ <h1 class="text-4xl font-extrabold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-lg">
+ เติมเครดิต
+ </h1>
+ <p class="mt-2 text-gray-400">เลือกแพ็กเกจที่ต้องการเพื่อเพิ่มโควต้าการลงทะเบียนใบหน้า</p>
+</header>
+
+ <main class="flex-grow flex flex-col items-center px-6 pb-16">
+ <form action="/create_payment" method="post" class="w-full max-w-2xl">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <label class="package glass rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 neon-border">
+     <input type="radio" name="credit_package" value="50" class="hidden peer" checked>
+     <div class="peer-checked:opacity-100 opacity-60 transition-opacity">
+      <h3 class="text-2xl font-bold text-cyan-400">50 เครดิต</h3>
+      <p class="text-3xl font-extrabold my-4">100 <span class="text-lg font-normal">บาท</span></p>
+      <p class="text-sm text-gray-400">(2.00 บาท/เครดิต)</p>
+     </div>
+    </label>
+
+    <label class="package glass rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 neon-border">
+     <input type="radio" name="credit_package" value="150" class="hidden peer">
+     <div class="peer-checked:opacity-100 opacity-60 transition-opacity">
+      <h3 class="text-2xl font-bold text-purple-400">150 เครดิต</h3>
+      <p class="text-3xl font-extrabold my-4">270 <span class="text-lg font-normal">บาท</span></p>
+      <p class="text-sm text-gray-400">(1.80 บาท/เครดิต)</p>
+     </div>
+    </label>
+
+    <label class="package glass rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 neon-border">
+     <input type="radio" name="credit_package" value="300" class="hidden peer">
+     <div class="peer-checked:opacity-100 opacity-60 transition-opacity">
+      <h3 class="text-2xl font-bold text-yellow-400">300 เครดิต</h3>
+      <p class="text-3xl font-extrabold my-4">450 <span class="text-lg font-normal">บาท</span></p>
+      <p class="text-sm text-gray-400">(1.50 บาท/เครดิต)</p>
+     </div>
+    </label>
+  </div>
+
+  <div class="mt-10 text-center">
+  <button type="submit" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-12 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
+   ดำเนินการชำระเงิน
+  </button>
+  </div>
+ </form>
+ </main>
+ <script>
+  lucide.createIcons();
+ </script>
+</body>
+</html>

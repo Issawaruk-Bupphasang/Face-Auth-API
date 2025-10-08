@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>✅ ชำระเงินสำเร็จ - Morris API</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+html, body {
+ margin: 0; padding: 0; height: 100%; width: 100%;
+ font-family: 'Inter', sans-serif;
+ background: radial-gradient(circle at top left, #0f172a, #020617 70%);
+ color: #e0e0e0;
+}
+.glass {
+ background: rgba(255,255,255,0.05);
+ backdrop-filter: blur(12px);
+ border: 1px solid rgba(255,255,255,0.1);
+}
+.neon-border {
+ border: 1px solid transparent;
+ background-clip: padding-box;
+ box-shadow: 0 0 12px rgba(34,197,94,0.6),
+    0 0 24px rgba(74,222,128,0.5);
+}
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+
+<main class="text-center p-8">
+ <div class="glass rounded-2xl p-10 sm:p-12 neon-border">
+  <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+   <i data-lucide="check-check" class="w-12 h-12 text-green-400"></i>
+  </div>
+  <h1 class="text-3xl font-extrabold text-green-400 drop-shadow-lg">
+   ชำระเงินสำเร็จเรียบร้อย
+  </h1>
+  <p class="mt-2 text-gray-300">
+   เราได้เพิ่ม <strong class="text-white">{{ credit_added }} เครดิต</strong> เข้าสู่บัญชีของคุณแล้ว
+  </p>
+  <p class="text-gray-400 mt-1">
+   เครดิตคงเหลือทั้งหมด: <strong class="text-white">{{ new_total_credits }}</strong>
+  </p>
+  <div class="mt-8">
+   <a href="/account" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-300">
+    กลับไปหน้าบัญชี
+   </a>
+  </div>
+ </div>
+</main>
+
+<script>
+ lucide.createIcons();
+ // Redirect back to account page after 10 seconds
+ setTimeout(() => {
+  window.location.href = '/account';
+ }, 10000);
+</script>
+</body>
+</html>

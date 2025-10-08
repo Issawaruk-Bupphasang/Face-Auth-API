@@ -247,7 +247,8 @@ def get_db_connection():
     return mysql.connector.connect(**DB_CONFIG)
 
 def query_db(query: str, args=(), one=False):
-    """Query the database and return results."""
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -741,6 +742,145 @@ async def get_current_user(request: Request):
         return None
     user = get_user_by_username(username)
     return user
+
+import random
+
+# ราคาของแพ็กเกจ (credit_amount: price_in_thb)
+CREDIT_PACKAGES = {
+    50: 100,
+    150: 270,
+    300: 450,
+}
+
+def get_placeholder_qr_base64():
+    """
+    อ่านไฟล์ภาพ QR Code จำลองจาก static และแปลงเป็น base64
+    นี่เป็น "ส่วนจำลอง" เพื่อให้มีภาพ QR แสดงบนหน้าเว็บ
+    """
+    try:
+        # **สำคัญ:** คุณต้องมีไฟล์ภาพ QR code ชื่อ `placeholder_qr.png`
+        # อยู่ในโฟลเดอร์ /static ของโปรเจกต์คุณ
+        with open("static/placeholder_qr.png", "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+            return f"data:image/png;base64,{encoded_string}"
+    except FileNotFoundError:
+        print("!!! WARNING: static/placeholder_qr.png not found. QR code will not be displayed.")
+        # ส่งค่าว่างกลับไปเพื่อให้ HTML แสดงข้อความ Error ตามที่ออกแบบไว้
+        return ""
+
+
+@app.get("/buy_credits", response_class=HTMLResponse)
+async def buy_credits_page(request: Request, user: dict = Depends(get_current_user)):
+    if not user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    return templates.TemplateResponse("buy_credits.html", {"request": request, "user": user})
+
+
+@app.post("/create_payment", response_class=HTMLResponse)
+async def create_payment(request: Request, credit_package: str = Form(...), user: dict = Depends(get_current_user)):
+    if not user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    try:
+        credit_amount = int(credit_package)
+        if credit_amount not in CREDIT_PACKAGES:
+            raise ValueError("Invalid package")
+    except ValueError:
+        # หากมีการส่งค่าที่ไม่ถูกต้องกลับไปหน้าเลือก
+        return RedirectResponse(url="/buy_credits", status_code=status.HTTP_303_SEE_OTHER)
+
+    total_price = CREDIT_PACKAGES[credit_amount]
+    order_id = f"MORRIS-{uuid.uuid4().hex[:8].upper()}"
+
+    # --- ส่วนของการจำลอง ---
+    # 1. เก็บข้อมูลออเดอร์ไว้ใน session
+    request.session["payment_order"] = {
+        "order_id": order_id,
+        "credit_amount": credit_amount,
+        "status": "PENDING",
+        "poll_count": 0 # ใช้นับจำนวนครั้งที่ client ตรวจสอบสถานะ
+    }
+    
+    # 2. สร้าง QR Code จำลอง
+    qr_code_base64 = get_placeholder_qr_base64()
+
+    return templates.TemplateResponse("payments.html", {
+        "request": request,
+        "token_uses_left": user.get("token_uses_left", 0),
+        "credit_amount": credit_amount,
+        "total_price": f"{total_price:,.2f}", # Format เป็นทศนิยม 2 ตำแหน่ง
+        "qr_code_base64": qr_code_base64,
+        "order_id": order_id,
+        "current_status": "PENDING"
+    })
+
+@app.get("/payment_status/{order_id}")
+async def check_payment_status(request: Request, order_id: str):
+    order_info = request.session.get("payment_order")
+
+    if not order_info or order_info.get("order_id") != order_id:
+        return {"status": "NOT_FOUND"}
+
+    # --- ส่วนของการจำลอง ---
+    # จำลองว่าหลังจากที่มีการตรวจสอบสถานะ 2-4 ครั้ง ให้เปลี่ยนเป็น PAID
+    poll_count = order_info.get("poll_count", 0) + 1
+    request.session["payment_order"]["poll_count"] = poll_count
+
+    # ให้สำเร็จหลังจากการ poll ครั้งที่ 3 เป็นต้นไป (ประมาณ 9 วินาที)
+    if poll_count >= 3:
+        request.session["payment_order"]["status"] = "PAID"
+        return {"status": "PAID"}
+
+    return {"status": "PENDING"}
+
+
+@app.get("/payment_success", response_class=HTMLResponse)
+async def payment_success(request: Request, user: dict = Depends(get_current_user)):
+    if not user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+        
+    order_info = request.session.get("payment_order")
+
+    # ตรวจสอบว่ามีออเดอร์ที่จ่ายสำเร็จจริง และยังไม่ได้เคลียร์ค่า
+    if not order_info or order_info.get("status") != "PAID":
+        # ถ้าไม่มีออเดอร์หรือยังไม่จ่าย ก็ส่งกลับไปหน้าบัญชี
+        return RedirectResponse(url="/account", status_code=status.HTTP_303_SEE_OTHER)
+
+    credit_added = order_info["credit_amount"]
+    user_id = user["user_id"]
+    
+    # --- ส่วนที่ทำงานกับของจริง ---
+    # อัปเดตเครดิตในฐานข้อมูล
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE users SET token_uses_left = token_uses_left + %s WHERE user_id = %s",
+            (credit_added, user_id)
+        )
+        conn.commit()
+        
+        # ดึงค่าเครดิตล่าสุดมาแสดงผล
+        cursor.execute("SELECT token_uses_left FROM users WHERE user_id = %s", (user_id,))
+        result = cursor.fetchone()
+        new_total_credits = result[0] if result else user.get("token_uses_left", 0) + credit_added
+        
+    except Exception as e:
+        print(f"Error updating credits for user {user_id}: {e}")
+        new_total_credits = "Error"
+    finally:
+        if 'conn' in locals() and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    # เคลียร์ข้อมูลออเดอร์ออกจาก session เพื่อป้องกันการกด refresh แล้วได้เครดิตซ้ำ
+    del request.session["payment_order"]
+
+    return templates.TemplateResponse("payment_success.html", {
+        "request": request,
+        "credit_added": credit_added,
+        "new_total_credits": new_total_credits
+    })
 
 @app.get("/forgot-password")
 async def forgot_password_page(request: Request):

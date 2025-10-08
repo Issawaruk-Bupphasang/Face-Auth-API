@@ -13,7 +13,7 @@
   html {
     margin: 0;
     padding: 0;
-    height: auto;   /* เต็ม viewport จริงบนมือถือ */
+    height: auto;
     width: auto;
     overflow-x: hidden;
   }
@@ -21,11 +21,11 @@
   body {
     margin: 0;
     padding: 0;
-    height: 100dvh; /* เต็มความสูง viewport จริง */
+    height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow-y: auto; /* ให้ pull-to-refresh ทำงาน */
+    overflow-y: auto;
     overflow-x: hidden;
     font-family: 'Inter', sans-serif;
     background: radial-gradient(circle at top left, #0f172a, #020617 70%);
@@ -211,7 +211,7 @@ const otpWrapper = document.getElementById("otp-wrapper");
 const sendOtpBtn = document.getElementById("send-otp-btn");
 const otpSentMsg = document.getElementById("otp-sent-msg");
 
-const usernameRegex = /^[A-Za-z0-9]+$/;
+const usernameRegex = /^[A-Za-z0-9]{6,15}$/;
 const passwordRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/;
 
 function showError(inputElem, errorDiv, message){
@@ -362,7 +362,7 @@ usernameInput.addEventListener("blur", async () => {
   }
 
   if(!usernameRegex.test(username)){
-    showError(usernameInput, usernameError, "ชื่อผู้ใช้ต้องเป็นตัวอักษรภาษาอังกฤษ");
+    showError(usernameInput, usernameError, "ชื่อผู้ใช้ต้องเป็น a–z, A–Z, 0–9 และมีความยาว 6–15 ตัวอักษร");
     return;
   }
 
@@ -495,7 +495,7 @@ async function validateForm(e) {
     showError(usernameInput, usernameError, "กรุณากรอกชื่อผู้ใช้"); 
     valid=false; 
   } else if(!usernameRegex.test(usernameInput.value.trim())){
-    showError(usernameInput, usernameError, "ชื่อผู้ใช้ต้องเป็นตัวอักษรภาษาอังกฤษ");
+    showError(usernameInput, usernameError, "ชื่อผู้ใช้ต้องเป็น a–z, A–Z, 0–9 และมีความยาว 6–15 ตัวอักษร");
     valid=false;
   }
 
