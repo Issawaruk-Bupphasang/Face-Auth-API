@@ -32,24 +32,30 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- Navigation -->
   <nav class="flex justify-between items-center px-8 py-4 glass sticky top-0 z-50 shadow-lg">
     <a href="/api" class="text-2xl font-bold tracking-wide bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
       Morris API
     </a>
 
     <div class="flex items-center space-x-4">
+      
+      <div class="flex items-center space-x-2 bg-gray-800 rounded-full p-1 shadow-lg border border-gray-700">
+          <button id="lang-th" data-lang="th" class="text-sm font-semibold px-3 py-0.5 rounded-full transition duration-150 lang-btn">
+              TH
+          </button>
+          <button id="lang-en" data-lang="en" class="text-sm font-semibold px-3 py-0.5 rounded-full transition duration-150 lang-btn">
+              EN
+          </button>
+      </div>
       {% if user and user != "Guest" %}
-        <span class="bg-green-900/30 text-green-300 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-          Credit: {{ token_uses_left }}
+        <span class="bg-green-900/30 text-green-300 text-xs font-semibold px-3 py-1 rounded-full shadow-lg whitespace-nowrap" data-i18n="nav.credit_label">
+          Credit: {{ credit_count }}
         </span>
       <div class="relative group">
-        <!-- ปุ่ม -->
         <button class="bg-gray-800 px-4 py-1.5 rounded-full hover:bg-gray-700 transition">
           {{ user }}
         </button>
 
-        <!-- Dropdown -->
         <div class="absolute right-0 top-full mt-0 w-56 glass rounded-lg shadow-xl
                     opacity-0 scale-95 pointer-events-none transition transform origin-top-right
                     group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto z-50">
@@ -57,37 +63,105 @@
             <p class="font-semibold">{{ user }}</p>
             <p class="text-xs text-gray-400">{{ email }}</p>
           </div>
-          <a href="/account" class="block px-4 py-2 hover:bg-gray-700">⚙ My Account</a>
-          <a href="/logout" class="block px-4 py-2 hover:bg-red-700 text-red-400">🚪 Logout</a>
+          <a href="/account" class="block px-4 py-2 hover:bg-gray-700">⚙ <span data-i18n="nav.my_account">My Account</span></a>
+          <a href="/logout" class="block px-4 py-2 hover:bg-red-700 text-red-400">🚪 <span data-i18n="nav.logout">Logout</span></a>
         </div>
       </div>
       {% else %}
-        <a href="/login" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold rounded-lg shadow hover:opacity-80 transition">
+        <a href="/login" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold rounded-lg shadow hover:opacity-80 transition" data-i18n="nav.login_btn">
           Login
         </a>
       {% endif %}
     </div>
   </nav>
 
-  <!-- Single API Section -->
   <section class="py-20 px-6 max-w-3xl mx-auto">
     <div onclick="location.href='/api/face_authentication'" 
          class="p-10 glass rounded-2xl shadow-xl border hover:shadow-2xl transition cursor-pointer text-center neon-border">
 
-      <!-- Icon -->
       <div class="flex justify-center items-center w-20 h-20 mx-auto mb-6 text-white text-5xl bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full shadow-lg pulse">
         👤
       </div>
 
-      <!-- Title -->
-      <h3 class="font-bold text-3xl mb-3 text-white">Face Authentication API</h3>
+      <h3 class="font-bold text-3xl mb-3 text-white" data-i18n="api.title">Face Authentication API</h3>
       
-      <!-- Description -->
-      <p class="text-gray-300 text-base max-w-md mx-auto">
+      <p class="text-gray-300 text-base max-w-md mx-auto" data-i18n="api.description">
         Verify and authenticate user identity instantly using advanced face recognition technology.
       </p>
     </div>
   </section>
+
+<script>
+    // --- LANGUAGE DATA ---
+    // Contains all the translatable strings. Duplicated keys from account.html are included for self-containment.
+    const i18n_data = {
+        'en': {
+            // NAV/HEADER
+            "nav.credit_label": "Credit: {{ credit_count }}",
+            "nav.my_account": "My Account",
+            "nav.logout": "Logout",
+            "nav.login_btn": "Login",
+            
+            // API SECTION
+            "api.title": "Face Authentication API",
+            "api.description": "Verify and authenticate user identity instantly using advanced face recognition technology.",
+        },
+        'th': {
+            // NAV/HEADER
+            "nav.credit_label": "เครดิต: {{ credit_count }}",
+            "nav.my_account": "บัญชีของฉัน",
+            "nav.logout": "ออกจากระบบ",
+            "nav.login_btn": "เข้าสู่ระบบ",
+            
+            // API SECTION
+            "api.title": "API ยืนยันตัวตนด้วยใบหน้า",
+            "api.description": "ตรวจสอบและยืนยันตัวตนของผู้ใช้ได้ทันทีโดยใช้เทคโนโลยีการจดจำใบหน้าขั้นสูง",
+        }
+    };
+
+    let currentLang = localStorage.getItem('lang') || 'en';
+    
+    function applyLanguage(lang) {
+        const translations = i18n_data[lang];
+        
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            const key = element.getAttribute('data-i18n');
+            if (translations[key]) {
+                if (key === 'nav.credit_label') {
+                    element.innerHTML = translations[key];
+                } else {
+                    element.textContent = translations[key];
+                }
+            }
+        });
+
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            if (btn.dataset.lang === lang) {
+                btn.classList.remove('bg-gray-800', 'text-gray-400');
+                btn.classList.add('bg-cyan-600', 'text-white');
+            } else {
+                btn.classList.remove('bg-cyan-600', 'text-white');
+                btn.classList.add('bg-gray-800', 'text-gray-400');
+            }
+        });
+        
+        document.documentElement.lang = lang;
+        
+        localStorage.setItem('lang', lang);
+        currentLang = lang;
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            applyLanguage(button.dataset.lang);
+        });
+    });
+    
+    // Apply saved language on load
+    window.addEventListener('load', () => {
+        applyLanguage(currentLang);
+    });
+</script>
 
 </body>
 </html>

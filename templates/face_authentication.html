@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>Face Authentication API</title>
@@ -25,25 +25,30 @@
 </head>
 <body class="text-gray-100 min-h-screen flex flex-col">
 
-  <!-- Navigation -->
   <nav class="flex justify-between items-center px-8 py-4 glass sticky top-0 z-50">
     <a href="/api" class="text-2xl font-bold tracking-wide bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
       Morris API
     </a>
 
     <div class="flex items-center space-x-4">
-      <!-- Token Uses Left -->
-      <span class="bg-green-900/30 text-green-300 text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-        Credit : {{ token_uses_left }}
+      
+      <div class="flex items-center space-x-2 bg-gray-800 rounded-full p-1 shadow-lg border border-gray-700">
+          <button id="lang-th" data-lang="th" class="text-sm font-semibold px-3 py-0.5 rounded-full transition duration-150 lang-btn">
+              TH
+          </button>
+          <button id="lang-en" data-lang="en" class="text-sm font-semibold px-3 py-0.5 rounded-full transition duration-150 lang-btn">
+              EN
+          </button>
+      </div>
+      <span class="bg-green-900/30 text-green-300 text-xs font-semibold px-3 py-1 rounded-full shadow-lg whitespace-nowrap" data-i18n="nav.credit_label">
+        Credit : {{ credit_count }}
       </span>
 
       <div class="relative group">
-        <!-- ปุ่ม -->
         <button class="bg-gray-800 px-4 py-1.5 rounded-full hover:bg-gray-700 transition">
           {{ user }}
         </button>
 
-        <!-- Dropdown -->
         <div class="absolute right-0 top-full mt-0 w-56 glass rounded-lg shadow-xl
                     opacity-0 scale-95 pointer-events-none transition transform origin-top-right
                     group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto z-50">
@@ -51,48 +56,47 @@
             <p class="font-semibold">{{ user }}</p>
             <p class="text-xs text-gray-400">{{ email }}</p>
           </div>
-          <a href="/account" class="block px-4 py-2 hover:bg-gray-700">My Account</a>
-          <a href="/logout" class="block px-4 py-2 hover:bg-red-700 text-red-400">Logout</a>
+          <a href="/account" class="block px-4 py-2 hover:bg-gray-700"><span data-i18n="nav.my_account">My Account</span></a>
+          <a href="/logout" class="block px-4 py-2 hover:bg-red-700 text-red-400"> <span data-i18n="nav.logout">Logout</span></a>
         </div>
       </div>
     </div>
   </nav>
 
-  <!-- Hero -->
   <header class="text-center py-16">
-    <h1 class="text-5xl font-extrabold bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg animate-pulse">
+    <h1 class="text-5xl font-extrabold bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg animate-pulse" data-i18n="header.title">
       Face Authentication API
     </h1>
-    <p class="mt-3 text-gray-400 text-lg font-medium">Documentation for next-gen biometric authentication via WebSocket</p>
+    <p class="mt-3 text-gray-400 text-lg font-medium" data-i18n="header.subtitle">Documentation for next-gen biometric authentication via WebSocket</p>
   </header>
 
-  <!-- Main -->
   <main class="flex-grow flex flex-col items-center px-6 pb-16">
     
     <section class="w-full max-w-5xl glass rounded-2xl p-8 space-y-8 neon-border">
       
-      <!-- Endpoint & Token Container -->
       <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg space-y-6">
 
-        <!-- Endpoint -->
         <div>
-          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Endpoint</h5>
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1" data-i18n="endpoint.title">Endpoint</h5>
           <div class="flex items-center justify-between bg-gray-900 px-3 py-2 rounded-lg">
             <code id="ws-endpoint" class="text-cyan-400 text-sm break-all"></code>
             <button onclick="copyEndpoint()" 
-              class="ml-3 px-3 py-1 text-xs bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded hover:opacity-80 transition">
+              class="ml-3 px-3 py-1 text-xs bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded hover:opacity-80 transition **whitespace-nowrap flex-shrink-0**" data-i18n="button.copy">
               Copy
             </button>
           </div>
         </div>
 
-        <!-- API Token -->
         <div>
-          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">API Token</h5>
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1" data-i18n="token.title">API Token</h5>
           <div class="flex items-center justify-between bg-gray-900 px-3 py-2 rounded-lg">
-            <code id="api-token" class="text-purple-400 text-sm break-all">{{ token }}</code>
+            <select id="api-token-select" class="bg-gray-900 text-purple-400 text-sm break-all w-full">
+              {% for token in tokens %}
+              <option value="{{ token }}">{{ token }}</option>
+              {% endfor %}
+            </select>
             <button onclick="copyToken()" 
-              class="ml-3 px-3 py-1 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded hover:opacity-80 transition">
+              class="ml-3 px-3 py-1 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded hover:opacity-80 transition whitespace-nowrap flex-shrink-0" data-i18n="button.copy">
               Copy
             </button>
           </div>
@@ -100,48 +104,42 @@
 
       </div>
 
-      <!-- Code Samples Container -->
       <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg space-y-4">
 
-        <!-- Section Title -->
-        <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Usage Code Samples</h5>
+        <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1" data-i18n="code.title">Usage Code Samples</h5>
 
-        <!-- Tabs -->
         <div class="flex space-x-2">
           <button onclick="showTab('verify')" id="btn-verify"
-            class="px-4 py-1.5 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md">
+            class="px-4 py-1.5 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md" data-i18n="code.btn_verify">
             Verify
           </button>
           <button onclick="showTab('register')" id="btn-register"
-            class="px-4 py-1.5 text-sm rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600">
+            class="px-4 py-1.5 text-sm rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600" data-i18n="code.btn_register">
             Register
           </button>
         </div>
 
-        <!-- Code Box -->
         <div class="relative">
           <pre id="code-box" class="bg-gray-900 text-green-300 text-xs rounded-lg p-4 overflow-x-auto whitespace-pre-wrap shadow-inner"></pre>
           <button onclick="copyCode()" 
-            class="absolute top-2 right-2 px-3 py-1 text-xs bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded hover:opacity-80 transition">
+            class="absolute top-2 right-2 px-3 py-1 text-xs bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded hover:opacity-80 transition **whitespace-nowrap**" data-i18n="button.copy">
             Copy
           </button>
         </div>
 
       </div>
 
-      <!-- Request Parameters -->
       <div>
-        <h3 class="text-xl font-semibold mb-2">Request Parameters</h3>
+        <h3 class="text-xl font-semibold mb-2" data-i18n="req_params.title">Request Parameters</h3>
 
-        <!-- Header Parameters -->
         <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
-          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Header Parameters</h5>
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1" data-i18n="req_params.header_title">Header Parameters</h5>
           <div class="overflow-x-auto">
             <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden shadow-inner">
               <thead class="bg-gray-800 text-gray-300">
                 <tr>
-                  <th class="px-4 py-2 text-left w-2/4">Name</th>
-                  <th class="px-4 py-2 text-left w-3/4">Description</th>
+                  <th class="px-4 py-2 text-left w-2/4" data-i18n="table.name">Name</th>
+                  <th class="px-4 py-2 text-left w-3/4" data-i18n="table.description">Description</th>
                 </tr>
               </thead>
               <tbody class="text-gray-400">
@@ -154,15 +152,14 @@
           </div>
         </div>
 
-        <!-- Body Parameters -->
         <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
-          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Body Parameters</h5>
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1" data-i18n="req_params.body_title">Body Parameters</h5>
           <div class="overflow-x-auto">
             <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden shadow-inner">
               <thead class="bg-gray-800 text-gray-300">
                 <tr>
-                  <th class="px-4 py-2 text-left w-2/4">Name</th>
-                  <th class="px-4 py-2 text-left w-3/4">Description</th>
+                  <th class="px-4 py-2 text-left w-2/4" data-i18n="table.name">Name</th>
+                  <th class="px-4 py-2 text-left w-3/4" data-i18n="table.description">Description</th>
                 </tr>
               </thead>
               <tbody class="text-gray-400">
@@ -180,33 +177,32 @@
           </div>
         </div>
         
-        <!-- Response Parameters -->
-        <h4 class="text-xl font-semibold mb-1">Response Parameters</h4>
+        <h4 class="text-xl font-semibold mb-1" data-i18n="res_params.title">Response Parameters</h4>
         <div class="overflow-x-auto mb-4">
           <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden">
             <thead class="bg-gray-800 text-gray-300">
               <tr>
-                <th class="px-4 py-2 text-left w-2/4">Status</th>
-                <th class="px-4 py-2 text-left w-3/4">Description</th>
+                <th class="px-4 py-2 text-left w-2/4" data-i18n="table.status">Status</th>
+                <th class="px-4 py-2 text-left w-3/4" data-i18n="table.description">Description</th>
               </tr>
             </thead>
             <tbody class="text-gray-400">
               <tr class="border-t border-gray-700 hover:bg-gray-800">
                 <td class="px-4 py-2 align-top">200</td>
-                <td class="px-4 py-2 align-top text-green-400">API Request Successful</td>
+                <td class="px-4 py-2 align-top text-green-400" data-i18n="res_params.status_desc">API Request Successful</td>
               </tr>
             </tbody>
           </table>
         </div>
         
         <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
-          <h4 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Body Parameters</h4>
+          <h4 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1" data-i18n="res_params.body_title">Body Parameters</h4>
           <div class="overflow-x-auto">
             <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden shadow-inner">
               <thead class="bg-gray-800 text-gray-300">
                 <tr>
-                  <th class="px-4 py-2 text-left w-2/4">Name</th>
-                  <th class="px-4 py-2 text-left w-3/4">Description</th>
+                  <th class="px-4 py-2 text-left w-2/4" data-i18n="table.name">Name</th>
+                  <th class="px-4 py-2 text-left w-3/4" data-i18n="table.description">Description</th>
                 </tr>
               </thead>
               <tbody class="text-gray-400">
@@ -222,8 +218,7 @@
   "confidence": "&lt; float &gt;",
   "spoof_confidence": "&lt; float &gt;",
   "faces_detected": "&lt; int &gt;",
-  "timestamp": "&lt; string &gt;",
-  "error_code": "&lt; int &gt;"
+  "timestamp": "&lt; string &gt;"
 }</pre>
                   </td>
                 </tr>
@@ -232,27 +227,26 @@
           </div>
         </div>
         
-        <!-- Field Details -->
-        <h4 class="text-xl font-semibold mb-1">Field Details</h4>
+        <h4 class="text-xl font-semibold mb-1" data-i18n="field_details.title">Field Details</h4>
 
         <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
-          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Request Field Details</h5>
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1" data-i18n="field_details.req_title">Request Field Details</h5>
           <div class="overflow-x-auto">
             <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden shadow-inner">
               <thead class="bg-gray-800 text-gray-300">
                 <tr>
-                  <th class="px-4 py-2 text-left w-2/4">Fields</th>
-                  <th class="px-4 py-2 text-left w-3/4">Values / Description</th>
+                  <th class="px-4 py-2 text-left w-2/4" data-i18n="table.fields">Fields</th>
+                  <th class="px-4 py-2 text-left w-3/4" data-i18n="table.values_desc">Values / Description</th>
                 </tr>
               </thead>
               <tbody class="text-gray-400">
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">request_id</td>
-                  <td class="px-4 py-2 text-green-400">Unique request ID used for processing requests</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.req_id_desc">Unique request ID used for processing requests</td>
                 </tr>
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">img_base64</td>
-                  <td class="px-4 py-2 text-green-400">Base64 encoded string</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.img_desc">Base64 encoded string</td>
                 </tr>
               </tbody>
             </table>
@@ -260,55 +254,51 @@
         </div>
 
         <div class="mb-6 p-4 bg-gray-800 rounded-xl shadow-lg">
-          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1">Response Field Details</h5>
+          <h5 class="text-lg text-white mb-3 font-semibold border-b border-gray-700 pb-1" data-i18n="field_details.res_title">Response Field Details</h5>
           <div class="overflow-x-auto">
             <table class="min-w-full table-fixed text-sm bg-gray-900 rounded-lg overflow-hidden shadow-inner">
               <thead class="bg-gray-800 text-gray-300">
                 <tr>
-                  <th class="px-4 py-2 text-left w-2/4">Fields</th>
-                  <th class="px-4 py-2 text-left w-3/4">Values / Description</th>
+                  <th class="px-4 py-2 text-left w-2/4" data-i18n="table.fields">Fields</th>
+                  <th class="px-4 py-2 text-left w-3/4" data-i18n="table.values_desc">Values / Description</th>
                 </tr>
               </thead>
               <tbody class="text-gray-400">
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">request_id</td>
-                  <td class="px-4 py-2 text-green-400">The corresponding request identifier</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.res_req_id_desc">The corresponding request identifier</td>
                 </tr>
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">user_id</td>
-                  <td class="px-4 py-2 text-green-400">Unique identifier of the user associated with the request</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.user_id_desc">Unique identifier of the user associated with the request</td>
                 </tr>
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">subuser_id</td>
-                  <td class="px-4 py-2 text-green-400">Unique identifier of the subuser created during registration</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.subuser_id_desc">Unique identifier of the subuser created during registration</td>
                 </tr>
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">success</td>
-                  <td class="px-4 py-2 text-green-400">Indicates whether the operation was successful</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.success_desc">Indicates whether the operation was successful</td>
                 </tr>
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">message</td>
-                  <td class="px-4 py-2 text-green-400">A descriptive message about the result</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.message_desc">A descriptive message about the result</td>
                 </tr>
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">confidence</td>
-                  <td class="px-4 py-2 text-green-400">The confidence score of the face recognition</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.confidence_desc">The confidence score of the face recognition</td>
                 </tr>
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">spoof_confidence</td>
-                  <td class="px-4 py-2 text-green-400">The confidence score of the spoofing detection</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.spoof_desc">The confidence score of the spoofing detection</td>
                 </tr>
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">faces_detected</td>
-                  <td class="px-4 py-2 text-green-400">The number of faces detected in the frame</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.faces_desc">The number of faces detected in the frame</td>
                 </tr>
                 <tr class="border-t border-gray-700 hover:bg-gray-800">
                   <td class="px-4 py-2 align-top">timestamp</td>
-                  <td class="px-4 py-2 text-green-400">The time when the response was generated</td>
-                </tr>
-                <tr class="border-t border-gray-700 hover:bg-gray-800">
-                  <td class="px-4 py-2 align-top">error_code</td>
-                  <td class="px-4 py-2 text-green-400">The error code if any issue occurred</td>
+                  <td class="px-4 py-2 text-green-400" data-i18n="field.timestamp_desc">The time when the response was generated</td>
                 </tr>
               </tbody>
             </table>
@@ -319,7 +309,6 @@
     </section>
   </main>
 
-  <!-- Toast -->
   <div id="toast" 
        class="fixed bottom-6 right-6 bg-black/80 text-white text-sm px-4 py-2 rounded-lg shadow-lg opacity-0 pointer-events-none transition duration-500">
   </div>
@@ -327,25 +316,209 @@
 <script>
   let wsUrl = ""; // ตัวแปร global สำหรับ endpoint
 
+  // --- LANGUAGE DATA ---
+  const i18n_data = {
+      'en': {
+          // NAV/HEADER
+          "nav.credit_label": "Credit : {{ credit_count }}",
+          "nav.my_account": "My Account",
+          "nav.logout": "Logout",
+          "header.title": "Face Authentication API",
+          "header.subtitle": "Documentation for next-gen biometric authentication via WebSocket",
+
+          // API DOCS
+          "endpoint.title": "Endpoint",
+          "token.title": "API Token",
+          "code.title": "Usage Code Samples",
+          "code.btn_verify": "Verify",
+          "code.btn_register": "Register",
+          "req_params.title": "Request Parameters",
+          "req_params.header_title": "Header Parameters",
+          "req_params.body_title": "Body Parameters",
+          "res_params.title": "Response Parameters",
+          "res_params.status_desc": "API Request Successful",
+          "res_params.body_title": "Body Parameters",
+          "field_details.title": "Field Details",
+          "field_details.req_title": "Request Field Details",
+          "field_details.res_title": "Response Field Details",
+          
+          // TABLE HEADERS
+          "table.name": "Name",
+          "table.description": "Description",
+          "table.status": "Status",
+          "table.fields": "Fields",
+          "table.values_desc": "Values / Description",
+
+          // FIELD DESCRIPTIONS
+          "field.req_id_desc": "Unique request ID used for processing requests",
+          "field.img_desc": "Base64 encoded string",
+          "field.res_req_id_desc": "The corresponding request identifier",
+          "field.user_id_desc": "Unique identifier of the user associated with the request",
+          "field.subuser_id_desc": "Unique identifier of the subuser created during registration",
+          "field.success_desc": "Indicates whether the operation was successful",
+          "field.message_desc": "A descriptive message about the result",
+          "field.confidence_desc": "The confidence score of the face recognition",
+          "field.spoof_desc": "The confidence score of the spoofing detection",
+          "field.faces_desc": "The number of faces detected in the frame",
+          "field.timestamp_desc": "The time when the response was generated",
+
+          // BUTTONS/TOASTS
+          "button.copy": "Copy",
+          "toast.endpoint_copied": "✅ Endpoint copied!",
+          "toast.token_copied": "✅ Token copied!",
+          "toast.code_copied": "✅ Code copied!",
+          "toast.token_updated": "Token updated in code sample!",
+          
+          // HARCODED strings in makePage (for reference, though not dynamically translated in the pop-up code)
+          "popup.camera_error": "Cannot access camera",
+          "popup.unknown_error": "Unknown reason",
+          "popup.user": "User",
+          "popup.confidence": "Confidence Score",
+          "popup.spoof_confidence": "Spoof Confidence Score",
+          "popup.time": "Time",
+      },
+      'th': {
+          // NAV/HEADER
+          "nav.credit_label": "เครดิต : {{ credit_count }}",
+          "nav.my_account": "บัญชีของฉัน",
+          "nav.logout": "ออกจากระบบ",
+          "header.title": "API ยืนยันตัวตนด้วยใบหน้า",
+          "header.subtitle": "เอกสารประกอบการใช้งานสำหรับการตรวจสอบไบโอเมตริกซ์ยุคใหม่ผ่าน WebSocket",
+
+          // API DOCS
+          "endpoint.title": "Endpoint",
+          "token.title": "API Token",
+          "code.title": "ตัวอย่างโค้ดการใช้งาน",
+          "code.btn_verify": "ตรวจสอบ",
+          "code.btn_register": "ลงทะเบียน",
+          "req_params.title": "พารามิเตอร์คำขอ (Request Parameters)",
+          "req_params.header_title": "พารามิเตอร์ส่วนหัว (Header)",
+          "req_params.body_title": "พารามิเตอร์ส่วนเนื้อหา (Body)",
+          "res_params.title": "พารามิเตอร์การตอบกลับ (Response Parameters)",
+          "res_params.status_desc": "คำขอ API สำเร็จ",
+          "res_params.body_title": "พารามิเตอร์ส่วนเนื้อหา (Body)",
+          "field_details.title": "รายละเอียดฟิลด์",
+          "field_details.req_title": "รายละเอียดฟิลด์คำขอ",
+          "field_details.res_title": "รายละเอียดฟิลด์การตอบกลับ",
+
+          // TABLE HEADERS
+          "table.name": "ชื่อ",
+          "table.description": "คำอธิบาย",
+          "table.status": "สถานะ",
+          "table.fields": "ฟิลด์",
+          "table.values_desc": "ค่า / คำอธิบาย",
+
+          // FIELD DESCRIPTIONS
+          "field.req_id_desc": "รหัสคำขอเฉพาะที่ใช้สำหรับการประมวลผลคำขอ",
+          "field.img_desc": "สตริงที่เข้ารหัสแบบ Base64",
+          "field.res_req_id_desc": "ตัวระบุคำขอที่สอดคล้องกัน",
+          "field.user_id_desc": "ตัวระบุเฉพาะของผู้ใช้ที่เกี่ยวข้องกับคำขอ",
+          "field.subuser_id_desc": "ตัวระบุเฉพาะของ Subuser ที่ถูกสร้างขึ้นระหว่างการลงทะเบียน",
+          "field.success_desc": "ระบุว่าการดำเนินการสำเร็จหรือไม่",
+          "field.message_desc": "ข้อความอธิบายเกี่ยวกับผลลัพธ์",
+          "field.confidence_desc": "คะแนนความมั่นใจในการจดจำใบหน้า",
+          "field.spoof_desc": "คะแนนความมั่นใจในการตรวจจับการปลอมแปลง",
+          "field.faces_desc": "จำนวนใบหน้าที่ตรวจพบในเฟรม",
+          "field.timestamp_desc": "เวลาที่สร้างการตอบกลับ",
+
+          // BUTTONS/TOASTS
+          "button.copy": "คัดลอก",
+          "toast.endpoint_copied": "✅ คัดลอก Endpoint แล้ว!",
+          "toast.token_copied": "✅ คัดลอก Token แล้ว!",
+          "toast.code_copied": "✅ คัดลอกโค้ดแล้ว!",
+          "toast.token_updated": "อัปเดต Token ในตัวอย่างโค้ดแล้ว!",
+
+          // HARCODED strings in makePage (for reference, though not dynamically translated in the pop-up code)
+          "popup.camera_error": "ไม่สามารถเข้าถึงกล้องได้",
+          "popup.unknown_error": "ไม่ทราบสาเหตุ",
+          "popup.user": "ผู้ใช้งาน",
+          "popup.confidence": "ค่าความมั่นใจ",
+          "popup.spoof_confidence": "ค่าความมั่นใจการปลอมแปลง",
+          "popup.time": "เวลา",
+      }
+  };
+
+  let currentLang = localStorage.getItem('lang') || 'en';
+
+  function applyLanguage(lang) {
+      const translations = i18n_data[lang];
+      
+      // 1. Update text content
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+          const key = element.getAttribute('data-i18n');
+          if (translations[key]) {
+              
+              if (key === 'nav.credit_label') {
+                  element.innerHTML = translations[key];
+              } else {
+                  element.textContent = translations[key];
+              }
+          }
+      });
+
+      // 2. Update button styles
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+          if (btn.dataset.lang === lang) {
+              btn.classList.remove('bg-gray-800', 'text-gray-400');
+              btn.classList.add('bg-cyan-600', 'text-white');
+          } else {
+              btn.classList.remove('bg-cyan-600', 'text-white');
+              btn.classList.add('bg-gray-800', 'text-gray-400');
+          }
+      });
+      
+      // 3. Update the <html> lang attribute
+      document.documentElement.lang = lang;
+      
+      // 4. Save preference
+      localStorage.setItem('lang', lang);
+      currentLang = lang;
+      
+      // 5. Re-render the code sample to update the token/URL highlights (This also updates endpoint display)
+      // The current tab must be determined before calling showTab
+      const isVerifyActive = document.getElementById("btn-verify").classList.contains('bg-gradient-to-r');
+      showTab(isVerifyActive ? 'verify' : 'register');
+  }
+
+  // Event listener for language buttons
+  document.querySelectorAll('.lang-btn').forEach(button => {
+      button.addEventListener('click', () => {
+          applyLanguage(button.dataset.lang);
+      });
+  });
+
+  // --- EXISTING SCRIPT MODIFIED ---
+
   function makePage(mode, token=null) {
     const url = (window.location.protocol === "https:" ? "wss://" : "ws://") 
                   + window.location.host 
                   + (mode === "register" ? "/api/ws/face-register/" : "/api/ws/face-verify/");
 
+    // Get hardcoded strings for the pop-up (since dynamic JS in string is complex)
+    const lang = currentLang;
+    const translations = i18n_data[lang];
+    const cameraError = translations['popup.camera_error'];
+    const unknownError = translations['popup.unknown_error'];
+    const userLabel = translations['popup.user'];
+    const confidenceLabel = translations['popup.confidence'];
+    const spoofConfidenceLabel = translations['popup.spoof_confidence'];
+    const timeLabel = translations['popup.time'];
+    const title = mode === "register" ? translations['code.btn_register'] : translations['code.btn_verify'];
+
     return `
   <!DOCTYPE html>
   <html>
-  <head><title>Face ${mode === "register" ? "Register" : "Verify"}</title></head>
+  <head><title>Face ${title}</title></head>
   <body>
-    <h2>${mode === "register" ? "ลงทะเบียนใบหน้า" : "ยืนยันตัวตนด้วยใบหน้า"}</h2>
+    <h2>${title}</h2>
     <video id="video" autoplay muted width="320" height="240" style="transform: scaleX(-1);"></video>
     <div id="status" style="margin-top:10px; font-weight:bold; font-size:1.2em;"></div>
 
     <div id="details">
-      <div>ผู้ใช้งาน: -</div>
-      <div>ค่าความมั่นใจ: -</div>
-      <div>ค่าความมั่นใจการปลอมแปลง: -</div>
-      <div>เวลา: -</div>
+      <div>${userLabel}: -</div>
+      <div>${confidenceLabel}: -</div>
+      <div>${spoofConfidenceLabel}: -</div>
+      <div>${timeLabel}: -</div>
     </div>
 
     <script>
@@ -357,10 +530,13 @@
       const status = document.getElementById('status');
       const video = document.getElementById('video');
       const details = document.getElementById('details').children;
+      const cameraErrorMsg = "${cameraError}";
+      const unknownErrorMsg = "${unknownError}";
+      const labels = ["${userLabel}", "${confidenceLabel}", "${spoofConfidenceLabel}", "${timeLabel}"];
 
       navigator.mediaDevices.getUserMedia({video:true})
         .then(s => video.srcObject = s)
-        .catch(() => { status.textContent="ไม่สามารถเข้าถึงกล้องได้"; });
+        .catch(() => { status.textContent=cameraErrorMsg; });
 
       ws.onopen = () => {
         if(CONFIG.token) ws.send(JSON.stringify({token: CONFIG.token}));
@@ -371,10 +547,9 @@
         try {
           const d = JSON.parse(e.data);
           const body = d.body || {};
-          status.textContent = body.message || "ไม่ทราบสาเหตุ";
+          status.textContent = body.message || unknownErrorMsg;
           status.style.color = body.success ? "green" : "red";
 
-          const fields = ["ผู้ใช้งาน", "ค่าความมั่นใจ", "ค่าความมั่นใจการปลอมแปลง", "เวลา"];
           const values = body.success
             ? [
                 body.subuser_id || "-", 
@@ -384,7 +559,7 @@
               ]
             : ["-", "-", "-", "-"];
 
-          fields.forEach((label,i) => { details[i].textContent = label + ": " + values[i]; });
+          labels.forEach((label,i) => { details[i].textContent = label + ": " + values[i]; });
         } catch(err){ console.error(err,e.data); }
         sendFrame();
       };
@@ -410,17 +585,19 @@
   </html>`;
   }
 
-  const codes = {
-    verify: makePage("verify", "{{ token }}"),
-    register: makePage("register", "{{ token }}")
-  };
-
   document.addEventListener("DOMContentLoaded", () => {
-    showTab("verify"); // อัปเดต wsUrl ตาม tab
+    // Apply saved language before showing the tab
+    applyLanguage(currentLang);
   });
+
+  function getSelectedToken() {
+      const select = document.getElementById("api-token-select");
+      return select.value; // ดึงค่า Token ที่ถูกเลือกปัจจุบัน
+  }
 
   function showTab(tab) {
       const codeBox = document.getElementById("code-box");
+      const currentToken = getSelectedToken();
 
       // อัปเดต global wsUrl
       wsUrl = tab === "register"
@@ -429,16 +606,15 @@
 
       document.querySelector("#ws-endpoint").textContent = wsUrl;
 
-      let code = codes[tab].trim();
+      let code = makePage(tab, currentToken).trim();
 
       // highlight wsUrl
       const wsUrlRegex = new RegExp(wsUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "g"); // escape regex
       code = code.replace(wsUrlRegex, `<span class="text-cyan-400">${wsUrl}</span>`);
 
       // highlight token
-      const token = "{{ token }}"; // หรือใช้ dynamic token แทน
-      const tokenRegex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "g");
-      code = code.replace(tokenRegex, `<span class="text-purple-400">${token}</span>`);
+      const tokenRegex = new RegExp(currentToken.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "g");
+      code = code.replace(tokenRegex, `<span class="text-purple-400">${currentToken}</span>`);
 
       // escape HTML ที่เหลือ
       code = code.replace(/&/g, "&amp;")
@@ -462,24 +638,58 @@
   }
 
   function copyEndpoint() {
-    navigator.clipboard.writeText(wsUrl).then(() => showToast("✅ Endpoint copied!"));
+      const toastMsg = i18n_data[currentLang]['toast.endpoint_copied'];
+      navigator.clipboard.writeText(wsUrl).then(() => showToast(toastMsg));
   }
   function copyToken() {
-    navigator.clipboard.writeText(document.getElementById("api-token").innerText.trim())
-      .then(() => showToast("✅ Token copied!"));
+      const select = document.getElementById("api-token-select");
+      const token = select.value;
+      const toastMsg = i18n_data[currentLang]['toast.token_copied'];
+      navigator.clipboard.writeText(token)
+        .then(() => showToast(toastMsg));
   }
   function copyCode() {
-    navigator.clipboard.writeText(document.getElementById("code-box").innerText)
-      .then(() => showToast("✅ Code copied!"));
+      const toastMsg = i18n_data[currentLang]['toast.code_copied'];
+      navigator.clipboard.writeText(document.getElementById("code-box").innerText)
+        .then(() => showToast(toastMsg));
   }
 
   function showToast(msg) {
-    const t=document.getElementById("toast");
-    t.textContent=msg;
-    t.classList.remove("opacity-0","pointer-events-none");
-    t.classList.add("opacity-100");
-    setTimeout(()=>{t.classList.remove("opacity-100");t.classList.add("opacity-0","pointer-events-none");},2000);
+      const toast = document.getElementById("toast");
+      // ตั้งค่าข้อความและทำให้มองเห็นได้
+      toast.textContent = msg;
+      
+      // ลบ class ที่ทำให้ซ่อนอยู่ (opacity-0 และ pointer-events-none)
+      toast.classList.remove("opacity-0", "pointer-events-none");
+      toast.classList.add("opacity-100"); // ทำให้ปรากฏ
+
+      // ตั้งเวลาให้ซ่อนกลับไป
+      setTimeout(() => {
+          toast.classList.remove("opacity-100");
+          toast.classList.add("opacity-0"); // ทำให้หายไป
+          
+          // คืนค่า pointer-events-none เพื่อไม่ให้รบกวนการคลิกอื่น
+          setTimeout(() => {
+              toast.classList.add("pointer-events-none");
+          }, 500);
+      }, 3000);
   }
+
+  document.addEventListener("DOMContentLoaded", () => {
+      // applyLanguage is called first to set up translations and currentLang
+
+      const apiTokenSelect = document.getElementById("api-token-select");
+
+      apiTokenSelect.addEventListener("change", () => {
+          const isVerifyActive = document.getElementById("btn-verify").classList.contains('bg-gradient-to-r');
+          const currentTab = isVerifyActive ? 'verify' : 'register';
+
+          showTab(currentTab);
+          
+          const toastMsg = i18n_data[currentLang]['toast.token_updated'];
+          showToast(toastMsg); 
+      });
+  });
 </script>
 </body>
 </html>
