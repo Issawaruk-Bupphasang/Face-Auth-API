@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>🚀 Account Dashboard</title>
+    <title data-i18n="page_title">🚀 Account Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -45,7 +45,6 @@
         h1 { font-size: 2.25rem; }
     }
 
-    /* Custom Card for better UI separation */
     .custom-card {
         background: #1e293b; /* slate-800 */
         border-radius: 12px;
@@ -53,7 +52,6 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     }
 
-    /* For better FAQ visibility */
     .accordion-summary {
         position: relative;
     }
@@ -227,130 +225,295 @@
 
             <div id="face-management-tab" class="tab-content space-y-8 hidden">
                 <h2 class="text-3xl font-bold text-white border-b border-gray-700 pb-3" data-i18n="face_management.title">Face, API & Credit Management</h2>
-
                 <div class="custom-card p-6">
-                    <h3 class="text-xl font-semibold mb-4 text-purple-400" data-i18n="face_management.registered_faces_title">Registered Faces ({{ subusers | length }})</h3>
-                    
                     {% if subusers %}
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-700">
-                            <thead>
-                                <tr>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_username">ชื่อผู้ใช้งาน</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_api_token">API TOKEN</th> <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_registered_at">ลงทะเบียนเมื่อ</th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_last_verified">ยืนยันครั้งล่าสุด</th>
-                                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_actions">การดำเนินการ</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-800">
-                                {% for subuser in subusers %}
-                                <tr class="hover:bg-gray-800 transition duration-150" id="subuser-row-{{ subuser.subuser_id }}">
-                                    <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-white">{{ subuser.subuser_id }}</td>
-                                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-300">
-                                        <span id="username-display-{{ subuser.subuser_id }}">{{ subuser.username }}</span>
-                                    </td>
-                                    
-                                    <td class="px-3 py-4 text-sm font-mono break-all w-48">
-                                        {% if subuser.api_token %}
-                                            <code class="text-yellow-300 text-xs select-all">{{ subuser.api_token }}</code>
-                                        {% else %}
-                                            <span class="text-red-400 text-xs">N/A</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-400">{{ subuser.registered_at_formatted }}</td>
-                                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-400">{{ subuser.last_verified_at_formatted }}</td>
-                                    <td class="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button onclick="openEditModal({{ subuser.subuser_id }}, '{{ subuser.username }}')" class="text-indigo-400 hover:text-indigo-300 mr-3">
-                                            <i data-lucide="edit" class="w-4 h-4 inline-block"></i> <span data-i18n="face_management.edit_btn">แก้ไข</span>
-                                        </button>
-                                        <button onclick="deleteSubuser({{ subuser.subuser_id }}, '{{ subuser.username }}')" class="text-red-400 hover:text-red-300">
-                                            <i data-lucide="trash-2" class="w-4 h-4 inline-block"></i> <span data-i18n="face_management.delete_btn">ลบ</span>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-gray-400 italic" data-i18n="face_management.no_faces">ยังไม่มีใบหน้าลงทะเบียนไว้</p>
-                    {% endif %}
-                </div>
-                
-                <div class="custom-card space-y-4">
-                    <h3 class="text-xl font-semibold flex items-center gap-3 text-yellow-400 border-b border-gray-700 pb-2 mb-4" data-i18n="security.token_title">
-                        <i data-lucide="key-round" class="w-6 h-6"></i>
-                        Manage API Token
-                    </h3>
-                    <div class="space-y-4">
-                        <p class="text-sm text-gray-400" data-i18n="security.token_remaining">
-                            Remaining Token Creation Rights: <strong class="text-xl text-yellow-300">{{ token_count }}</strong> times
-                        </p>
+                        {% set grouped = subusers | groupby('channel_name') %}
                         
-                        <form action="/account/create_api_token" method="post" class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                            <button type="submit" 
-                                    {% if token_count <= 0 %}
-                                        disabled
-                                        class="bg-gray-600 cursor-not-allowed text-gray-400 opacity-70 inline-flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-lg transition text-white"
-                                    {% else %}
-                                        class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:opacity-80 inline-flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-lg transition text-white"
-                                    {% endif %}>
-                                <i data-lucide="plus-circle" class="w-5 h-5"></i> <span data-i18n="security.create_token_btn">Create New API Token</span>
-                            </button>
-                            {% if token_count <= 0 %}
-                                <p class="text-red-400 text-sm mt-1 sm:mt-0" data-i18n="security.max_token_reached">You have reached the maximum number of API Tokens allowed.</p>
+                        {% for group_name, group_members in grouped %}
+                            {% if group_name == 'Default' %}
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-2xl font-bold text-cyan-400" data-i18n="face_management.default_users_title">Default Users</h3>
+                                <button onclick="openAddGroupModal()" 
+                                        class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 px-4 py-2 rounded-lg font-semibold shadow-lg hover:opacity-80 transition text-white text-sm">
+                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> <span data-i18n="face_management.add_group_btn">Add Group</span>
+                                </button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-700">
+                                    <thead>
+                                        <tr>
+                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID</th>
+                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_username">Username</th>
+                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_api_token">API Token</th>
+                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_registered_at">Registered At</th>
+                                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_last_verified">Last Verified</th>
+                                            <th class="px-3 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_actions">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-800">
+                                        {% for subuser in group_members %}
+                                        <tr class="hover:bg-gray-800 transition duration-150" id="subuser-row-{{ subuser.subuser_id }}">
+                                            <td class="px-3 py-4 text-sm font-medium text-white">{{ subuser.subuser_id }}</td>
+                                            <td class="px-3 py-4 text-sm text-gray-300">{{ subuser.username }}</td>
+                                            <td class="px-3 py-4 text-sm font-mono break-all w-48">
+                                                {% if subuser.api_token %}
+                                                    <code class="text-yellow-300 text-xs select-all">{{ subuser.api_token }}</code>
+                                                {% else %}
+                                                    <span class="text-red-400 text-xs" data-i18n="face_management.table_na">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-3 py-4 text-sm text-gray-400 translatable-date" data-timestamp="{{ subuser.registered_at }}">
+                                                {{- subuser.registered_at_formatted -}}
+                                            </td>
+                                            <td class="px-3 py-4 text-sm text-gray-400 translatable-date" data-timestamp="{{ subuser.last_verified_at }}">
+                                                {{- subuser.last_verified_at_formatted -}}
+                                            </td>
+                                            <td class="px-3 py-4 text-right text-sm font-medium align-middle">
+                                            <div class="flex items-center justify-end gap-3">
+                                                <button
+                                                onclick="openEditModal({{ subuser.subuser_id }}, '{{ subuser.username }}')"
+                                                class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition"
+                                                title="Edit">
+                                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                                <span class="hidden sm:inline" data-i18n="face_management.edit_btn">Edit</span>
+                                                </button>
+
+                                                <button
+                                                onclick="deleteSubuser({{ subuser.subuser_id }}, '{{ subuser.username }}')"
+                                                class="inline-flex items-center gap-2 text-red-400 hover:text-red-300 transition"
+                                                title="Delete">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                <span class="hidden sm:inline" data-i18n="face_management.delete_btn">Delete</span>
+                                                </button>
+                                            </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
                             {% endif %}
-                        </form>
-                        
-                        <div class="mt-6 space-y-2 border-t border-gray-700 pt-4">
-                            <h3 class="text-lg font-medium text-gray-300" data-i18n="security.existing_tokens">Existing API Tokens:</h3>
-                            {% if tokens %}
-                                <ul class="space-y-3">
-                                    {% for t in tokens %}
-                                    <li class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 glass rounded-lg border border-gray-700">
-                                        <code class="text-sm font-mono text-white select-all break-all w-full sm:w-auto mb-2 sm:mb-0">
-                                            {{ t }}
-                                        </code>
-                                        <form action="/account/delete_api_token" method="post" onsubmit="return confirm('Are you sure you want to delete this API Token? Deleting it will increase your token creation right by 1.');">
-                                            <input type="hidden" name="api_token" value="{{ t }}">
-                                            <button type="submit" class="inline-flex items-center gap-1 text-red-400 hover:text-red-500 transition p-1 rounded-lg hover:bg-red-900/30 text-sm font-medium">
-                                                <i data-lucide="trash-2" class="w-4 h-4"></i> <span data-i18n="security.delete_token_btn">Delete</span>
+                        {% endfor %}
+
+                        {% for group_name, group_members in grouped %}
+                            {% if group_name != 'Default' %}
+                            <div class="mb-10 border border-gray-700 rounded-xl p-5 bg-gray-900/40 shadow-xl relative">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-2xl font-bold text-purple-400 flex items-center gap-2">
+                                        <i data-lucide="layers" class="w-5 h-5"></i>{{ group_name }}
+                                    </h3>
+
+                                    <div class="flex items-center gap-4">
+                                        <button onclick="openEditGroupModal('{{ group_name }}')" 
+                                                class="text-indigo-400 hover:text-indigo-300 text-sm flex items-center gap-1">
+                                            <i data-lucide="edit" class="w-4 h-4"></i> <span data-i18n="face_management.edit_group_name_btn">Edit group name</span>
+                                        </button>
+
+                                        <form method="POST" action="/group/delete" 
+                                            onsubmit="return confirmDeleteGroup(this, '{{ group_name }}');">
+                                            <input type="hidden" name="group_name" value="{{ group_name }}">
+                                            <button type="submit" class="text-red-400 hover:text-red-300 text-sm flex items-center gap-1">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                <span data-i18n="face_management.delete_group_btn">Delete group</span>
                                             </button>
                                         </form>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <p class="text-gray-500 italic mt-4" data-i18n="security.no_tokens">You currently have no API Tokens.</p>
+                                    </div>
+                                </div>
+
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-700">
+                                        <thead>
+                                            <tr>
+                                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID</th>
+                                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_username">Username</th>
+                                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_api_token">API Token</th>
+                                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_registered_at">Registered At</th>
+                                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_last_verified">Last Verified</th>
+                                                <th class="px-3 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider" data-i18n="face_management.table_actions">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-800">
+                                            {% for subuser in group_members %}
+                                            <tr class="hover:bg-gray-800 transition duration-150" id="subuser-row-{{ subuser.subuser_id }}">
+                                                <td class="px-3 py-4 text-sm font-medium text-white">{{ subuser.subuser_id }}</td>
+                                                <td class="px-3 py-4 text-sm text-gray-300">{{ subuser.username }}</td>
+                                                <td class="px-3 py-4 text-sm font-mono break-all w-48">
+                                                    {% if subuser.api_token %}
+                                                        <code class="text-yellow-300 text-xs select-all">{{ subuser.api_token }}</code>
+                                                    {% else %}
+                                                        <span class="text-red-400 text-xs" data-i18n="face_management.table_na">N/A</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="px-3 py-4 text-sm text-gray-400 translatable-date" data-timestamp="{{ subuser.registered_at }}">
+                                                    {{- subuser.registered_at_formatted -}}
+                                                </td>
+                                                <td class="px-3 py-4 text-sm text-gray-400 translatable-date" data-timestamp="{{ subuser.last_verified_at }}">
+                                                    {{- subuser.last_verified_at_formatted -}}
+                                                </td>
+                                                <td class="px-3 py-4 text-right text-sm font-medium align-middle">
+                                                <div class="flex items-center justify-end gap-3">
+                                                    <button
+                                                    onclick="openEditModal({{ subuser.subuser_id }}, '{{ subuser.username }}')"
+                                                    class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition"
+                                                    title="Edit">
+                                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                                    <span class="hidden sm:inline" data-i18n="face_management.edit_btn">Edit</span>
+                                                    </button>
+
+                                                    <button
+                                                    onclick="deleteSubuser({{ subuser.subuser_id }}, '{{ subuser.username }}')"
+                                                    class="inline-flex items-center gap-2 text-red-400 hover:text-red-300 transition"
+                                                    title="Delete">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                    <span class="hidden sm:inline" data-i18n="face_management.delete_btn">Delete</span>
+                                                    </button>
+                                                </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                             {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-gray-400 italic" data-i18n="face_management.no_faces">No faces have been registered yet.</p>
+                    {% endif %}
+                    <div class="custom-card space-y-4">
+                                <h3 class="text-xl font-semibold flex items-center gap-3 text-yellow-400 border-b border-gray-700 pb-2 mb-4">
+                            <i data-lucide="key-round" class="w-6 h-6"></i>
+                            Manage API Token
+                        </h3>
+                        <div class="space-y-4">
+                            <p class="text-sm text-gray-400" data-i18n="face_management.token_remaining">
+                                Remaining Token Creation Rights: <strong class="text-xl text-yellow-300">{{ token_count }}</strong> times
+                            </p>
+                            
+                            <form action="/account/create_api_token" method="post" class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                <button type="submit" 
+                                        {% if token_count <= 0 %}
+                                            disabled
+                                            class="bg-gray-600 cursor-not-allowed text-gray-400 opacity-70 inline-flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-lg transition text-white"
+                                        {% else %}
+                                            class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:opacity-80 inline-flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-lg transition text-white"
+                                        {% endif %}>
+                                    <i data-lucide="plus-circle" class="w-5 h-5"></i> <span data-i18n="face_management.create_token_btn">Create New API Token</span>
+                                </button>
+                                {% if token_count <= 0 %}
+                                    <p class="text-red-400 text-sm mt-1 sm:mt-0" data-i18n="face_management.max_token_reached">You have reached the maximum number of API Tokens allowed.</p>
+                                {% endif %}
+                            </form>
+                            
+                            <div class="mt-6 space-y-2 border-t border-gray-700 pt-4">
+                                <h3 class="text-lg font-medium text-gray-300" data-i18n="face_management.existing_tokens">Existing API Tokens:</h3>
+                                {% if tokens %}
+                                    <ul class="space-y-3">
+                                        {% for t in tokens %}
+                                        <li class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 glass rounded-lg border border-gray-700">
+                                            <code class="text-sm font-mono text-white select-all break-all w-full sm:w-auto mb-2 sm:mb-0">
+                                                {{ t }}
+                                            </code>
+                                            <form action="/account/delete_api_token" method="post" onsubmit="return confirm('Are you sure you want to delete this API Token? Deleting it will increase your token creation right by 1.');">
+                                                <input type="hidden" name="api_token" value="{{ t }}">
+                                                <button type="submit" class="inline-flex items-center gap-1 text-red-400 hover:text-red-500 transition p-1 rounded-lg hover:bg-red-900/30 text-sm font-medium">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i> <span data-i18n="face_management.delete_token_btn">Delete</span>
+                                                </button>
+                                            </form>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-gray-500 italic mt-4" data-i18n="face_management.no_tokens">You currently have no API Tokens.</p>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
-                </div>
+            </div>
 
             <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-[1000] items-center justify-center">
                 <div class="glass p-8 rounded-lg w-full max-w-md shadow-2xl">
-                    <h3 class="text-2xl font-bold mb-4 text-cyan-400" data-i18n="face_management.edit_modal_title">แก้ไขชื่อผู้ใช้งาน</h3>
-                    <form id="edit-form" method="POST" action="/subuser/update_username" class="space-y-4">
+                    <h3 class="text-2xl font-bold mb-4 text-cyan-400" data-i18n="face_management.edit_modal_title">Edit Subuser Details</h3>
+                    <form id="edit-form" method="POST" action="/subuser/update_username_and_channel" class="space-y-4">
                         <input type="hidden" name="subuser_id" id="edit-subuser-id">
                         <div>
-                            <label for="new-username" class="block text-sm font-medium text-gray-300" data-i18n="face_management.new_username_label">ชื่อผู้ใช้งานใหม่</label>
+                            <label for="new-username" class="block text-sm font-medium text-gray-300" data-i18n="face_management.new_username_label">New Username</label>
                             <input type="text" name="new_username" id="new-username" required class="mt-1 block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white shadow-sm focus:outline-none focus:ring-cyan-500 focus:border-cyan-500">
                         </div>
                         <div class="flex justify-end space-x-3">
-                            <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-600 rounded-md hover:bg-gray-700 transition" data-i18n="face_management.cancel_btn">ยกเลิก</button>
-                            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition" data-i18n="face_management.save_btn">บันทึก</button>
+                            <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-600 rounded-md hover:bg-gray-700 transition" data-i18n="face_management.cancel_btn">Cancel</button>
+                            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition" data-i18n="face_management.save_btn">Save</button>
                         </div>
                     </form>
                 </div>
             </div>
             
+            <div id="add-group-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-[1000] items-center justify-center">
+            <div class="glass p-8 rounded-lg w-full max-w-lg shadow-2xl space-y-5">
+                <h3 class="text-2xl font-bold text-purple-400 mb-4" data-i18n="add_group_modal.title">Create New Group</h3>
+                <form id="create-group-form" method="POST" action="/group/create" class="space-y-4">
+                <div>
+                    <label for="group-name" class="block text-sm font-medium text-gray-300 mb-1" data-i18n="add_group_modal.group_name_label">Group Name</label>
+                    <input type="text" id="group-name" name="group_name" required
+                        class="block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white shadow-sm focus:ring-purple-500 focus:border-purple-500">
+                </div>
+
+                <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1" data-i18n="add_group_modal.select_subusers_label">Select Subusers</label>
+                <div class="max-h-64 overflow-y-auto space-y-3 bg-gray-900/50 p-3 rounded-lg border border-gray-700">
+                    {% for subuser in subusers %}
+                    <label class="flex items-start gap-3 p-3 bg-gray-800/60 rounded-lg hover:bg-gray-800 transition cursor-pointer">
+                    <input type="checkbox" name="subuser_ids" value="{{ subuser.subuser_id }}" class="w-4 h-4 mt-1 accent-purple-500 flex-shrink-0">
+                    <div class="flex flex-col">
+                        <span class="text-base font-medium text-white">{{ subuser.username }} <span class="text-sm text-gray-400">(ID: {{ subuser.subuser_id }})</span></span>
+                        {% if subuser.api_token %}
+                        <code class="text-xs text-yellow-300 break-all mt-1 bg-gray-900/60 px-2 py-1 rounded-md border border-gray-700 font-mono">
+                            {{ subuser.api_token }}
+                        </code>
+                        {% else %}
+                        <span class="text-xs text-red-400 mt-1 italic" data-i18n="face_management.no_api_token">No API Token</span>
+                        {% endif %}
+                    </div>
+                    </label>
+                    {% endfor %}
+                </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeAddGroupModal()" class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-600 rounded-md hover:bg-gray-700 transition" data-i18n="face_management.cancel_btn">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition" data-i18n="add_group_modal.create_btn">Create Group</button>
+                </div>
+                </form>
+            </div>
+            </div>
+
+            <div id="edit-group-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-[1000] items-center justify-center">
+                <div class="glass p-8 rounded-lg w-full max-w-md shadow-2xl">
+                    <h3 class="text-2xl font-bold mb-4 text-purple-400" data-i18n="edit_group_modal.title">Edit Group Name</h3>
+                    <form id="edit-group-form" method="POST" action="/group/update_name" class="space-y-4">
+                        <input type="hidden" name="old_group_name" id="old-group-name">
+
+                        <div>
+                            <label for="new-group-name" class="block text-sm font-medium text-gray-300 mb-1" data-i18n="edit_group_modal.new_group_name_label">New Group Name</label>
+                            <input type="text" id="new-group-name" name="new_group_name" required
+                                class="block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white shadow-sm focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" onclick="closeEditGroupModal()" class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-600 rounded-md hover:bg-gray-700 transition" data-i18n="face_management.cancel_btn">Cancel</button>
+                            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition" data-i18n="face_management.save_btn">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div id="credit-tab" class="tab-content space-y-6 hidden">
                 <h2 class="text-3xl font-bold text-white border-b border-gray-700 pb-3" data-i18n="credit.title">Usage Credits</h2>
                 <div class="custom-card text-center space-y-4 pt-6">
                     <p class="text-xl text-gray-300 whitespace-nowrap" data-i18n="credit.remaining_credits">Remaining Credits</p>
-                    <p class="text-5xl font-extrabold tracking-tighter bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
+                    <p class="text-5xl font-extrabold tracking-wide bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
                         {{ credit_count }}
                         <span class="text-lg font-normal text-gray-400 align-top" data-i18n="overview.credit_unit">Credits</span>
                     </p>
@@ -367,48 +530,51 @@
                 <div class="space-y-4">
                     <details class="group bg-gray-800/50 p-4 rounded-xl shadow-xl border border-gray-700 cursor-pointer">
                         <summary class="flex justify-between items-center text-lg font-semibold text-cyan-400 transition accordion-summary">
-                            <span data-i18n="faq.q1">When will I receive my credits?</span>
+                            <span data-i18n="faq.q1">When will credits be deducted from my account?</span>
                             <i data-lucide="chevron-down" class="w-5 h-5 group-open:rotate-180 transition"></i>
                         </summary>
                         <div class="mt-2 text-gray-400 pt-3" data-i18n="faq.a1">
-                            Credits will be added to your account immediately after we successfully confirm the payment. If you encounter any issues, please contact support.
+                            Credits will be deducted only when you register your face. When you verify your face, credits will not be deducted.
                         </div>
                     </details>
                     <details class="group bg-gray-800/50 p-4 rounded-xl shadow-xl border border-gray-700 cursor-pointer">
                         <summary class="flex justify-between items-center text-lg font-semibold text-cyan-400 transition accordion-summary">
-                            <span data-i18n="faq.q2">Why does my account say "Unverified"?</span>
+                            <span data-i18n="faq.q2">Can the same username be used within the same API token?</span>
                             <i data-lucide="chevron-down" class="w-5 h-5 group-open:rotate-180 transition"></i>
                         </summary>
                         <div class="mt-2 text-gray-400 pt-3" data-i18n="faq.a2">
-                            This means you have not yet clicked the verification link we sent to your email. Please check your email (including the Junk/Spam folder) and click the link to verify your account.
+                            You cannot use the same username within the same API token.
                         </div>
                     </details>
-                       </div>
+                    <details class="group bg-gray-800/50 p-4 rounded-xl shadow-xl border border-gray-700 cursor-pointer">
+                        <summary class="flex justify-between items-center text-lg font-semibold text-cyan-400 transition accordion-summary">
+                            <span data-i18n="faq.q3">When a user deletes a created group, what happens to the users in that group?</span>
+                            <i data-lucide="chevron-down" class="w-5 h-5 group-open:rotate-180 transition"></i>
+                        </summary>
+                        <div class="mt-2 text-gray-400 pt-3" data-i18n="faq.a3">
+                            When a group is created and later deleted, the users in that group will be moved to the Default User group.
+                        </div>
+                    </details>
+                </div>
             </div> 
         </section>
     </main>
     <script>
         lucide.createIcons();
 
-        // --- LANGUAGE DATA ---
-        // Contains all the translatable strings
         const i18n_data = {
             'en': {
-                // NAV/HEADER
+                "page_title": "🚀 Account Dashboard",
                 "nav.credit_label": "Credit: {{ credit_count }}",
                 "nav.my_account": "My Account",
                 "nav.logout": "Logout",
                 "header.title": "Account Dashboard",
                 "header.subtitle": "Securely manage your profile, API Tokens, and service credits.",
-
-                // TABS
                 "tabs.overview": "Overview",
                 "tabs.security": "Security",
                 "tabs.face_management": "Face & API Token Management",
                 "tabs.credits": "Credits",
                 "tabs.faq": "FAQ",
-
-                // OVERVIEW TAB
                 "overview.title": "Account Overview",
                 "overview.user_details": "User Details",
                 "overview.username_label": "Username",
@@ -421,67 +587,68 @@
                 "overview.remaining_credits": "Remaining Credits",
                 "overview.credit_unit": "Credits",
                 "overview.buy_more": "Buy More",
-
-                // SECURITY TAB
                 "security.title": "Security Settings",
                 "security.password_title": "Password",
                 "security.password_desc": "Change your password regularly to maintain account security.",
                 "security.change_password_btn": "Change Password",
-                "security.token_title": "Manage API Tokens",
-                // Note: The template variables MUST be kept in the string for dynamic rendering.
-                "security.token_remaining": "Remaining Token Creation Rights: <strong class=\"text-xl text-yellow-300\">{{ token_count }}</strong> times",
-                "security.create_token_btn": "Create New API Token",
-                "security.max_token_reached": "You have reached the maximum number of API Tokens allowed.",
-                "security.existing_tokens": "Existing API Tokens:",
-                "security.no_tokens": "You currently have no API Tokens.",
-                "security.delete_token_btn": "Delete",
-                "security.delete_confirm_msg": "Are you sure you want to delete this API Token? Deleting it will increase your token creation right by 1.",
-
-                // FACE MANAGEMENT TAB
                 "face_management.title": "Face, API & Credit Management",
-                "face_management.registered_faces_title": "Registered Faces ({{ subusers | length }})",
+                "face_management.default_users_title": "Default Users",
+                "face_management.add_group_btn": "Add Group",
                 "face_management.table_username": "Username",
                 "face_management.table_api_token": "API Token",
+                "face_management.table_na": "N/A",
+                "face_management.no_api_token": "No API Token",
                 "face_management.table_registered_at": "Registered At",
                 "face_management.table_last_verified": "Last Verified",
                 "face_management.table_actions": "Actions",
                 "face_management.edit_btn": "Edit",
                 "face_management.delete_btn": "Delete",
+                "face_management.edit_group_name_btn": "Edit group name",
+                "face_management.delete_group_btn": "Delete group",
+                "face_management.delete_group_confirm": "Do you want to delete the group '{{group_name}}'? All users in this group will be moved to Default.",
                 "face_management.no_faces": "No faces have been registered yet.",
+                "face_management.token_title": "Manage API Token",
+                "face_management.token_remaining": "Remaining Token Creation Rights: <strong class=\"text-xl text-yellow-300\">{{ token_count }}</strong> times",
+                "face_management.create_token_btn": "Create New API Token",
+                "face_management.max_token_reached": "You have reached the maximum number of API Tokens allowed.",
+                "face_management.existing_tokens": "Existing API Tokens:",
+                "face_management.no_tokens": "You currently have no API Tokens.",
+                "face_management.delete_token_btn": "Delete",
+                "face_management.delete_confirm_msg": "Are you sure you want to delete this API Token? Deleting it will increase your token creation right by 1.",
                 "face_management.edit_modal_title": "Edit Username",
                 "face_management.new_username_label": "New Username",
                 "face_management.cancel_btn": "Cancel",
                 "face_management.save_btn": "Save",
                 "face_management.delete_confirm": "Do you want to delete this user's face: {{username}} (ID: {{id}})?",
-
-                // CREDIT TAB
+                "add_group_modal.title": "Create New Group",
+                "add_group_modal.group_name_label": "Group Name",
+                "add_group_modal.select_subusers_label": "Select Subusers",
+                "add_group_modal.create_btn": "Create Group",
+                "edit_group_modal.title": "Edit Group Name",
+                "edit_group_modal.new_group_name_label": "New Group Name",
                 "credit.title": "Usage Credits",
                 "credit.remaining_credits": "Remaining Credits",
                 "credit.buy_more_btn": "Buy More Credits",
-
-                // FAQ TAB
                 "faq.title": "Frequently Asked Questions (FAQ)",
-                "faq.q1": "When will I receive my credits?",
-                "faq.a1": "Credits will be added to your account immediately after we successfully confirm the payment. If you encounter any issues, please contact support.",
-                "faq.q2": "Why does my account say \"Unverified\"?",
-                "faq.a2": "This means you have not yet clicked the verification link we sent to your email. Please check your email (including the Junk/Spam folder) and click the link to verify your account.",
+                "faq.q1": "When will credits be deducted from my account?",
+                "faq.a1": "Credits will be deducted only when you register your face. When you verify your face, credits will not be deducted.",
+                "faq.q2": "Can the same username be used within the same API token?",
+                "faq.a2": "You cannot use the same username within the same API token.",
+                "faq.q3": "When a user deletes a created group, what happens to the users in that group?",
+                "faq.a3": "When a group is created and later deleted, the users in that group will be moved to the Default User group."
             },
             'th': {
-                // NAV/HEADER
+                "page_title": "🚀 แดชบอร์ดบัญชี",
                 "nav.credit_label": "เครดิต: {{ credit_count }}",
                 "nav.my_account": "บัญชีของฉัน",
                 "nav.logout": "ออกจากระบบ",
                 "header.title": "หน้าแดชบอร์ดบัญชี",
-                "header.subtitle": "จัดการข้อมูลส่วนตัว, API Token และเครดิตการใช้งานของคุณอย่างปลอดภัย",
-
-                // TABS
+                "header.subtitle": "จัดการข้อมูลส่วนตัว, โทเค็นและเครดิตการใช้งานของคุณอย่างปลอดภัย",
                 "tabs.overview": "ภาพรวม",
                 "tabs.security": "ความปลอดภัย",
-                "tabs.face_management": "จัดการใบหน้าและเอพีไอโทเค็น",
+                "tabs.face_management": "จัดการใบหน้าและโทเค็น",
                 "tabs.credits": "เครดิต",
                 "tabs.faq": "คำถามที่พบบ่อย",
-
-                // OVERVIEW TAB
                 "overview.title": "ภาพรวมบัญชี",
                 "overview.user_details": "ข้อมูลผู้ใช้งาน",
                 "overview.username_label": "ชื่อผู้ใช้งาน",
@@ -494,62 +661,100 @@
                 "overview.remaining_credits": "เครดิตคงเหลือ",
                 "overview.credit_unit": "เครดิต",
                 "overview.buy_more": "ซื้อเพิ่ม",
-
-                // SECURITY TAB
                 "security.title": "การตั้งค่าความปลอดภัย",
                 "security.password_title": "รหัสผ่าน",
                 "security.password_desc": "เปลี่ยนรหัสผ่านของคุณเป็นประจำเพื่อรักษาความปลอดภัยของบัญชี",
                 "security.change_password_btn": "เปลี่ยนรหัสผ่าน",
-                "security.token_title": "จัดการ API Token",
-                "security.token_remaining": "สิทธิ์ในการสร้าง Token คงเหลือ: <strong class=\"text-xl text-yellow-300\">{{ token_count }}</strong> ครั้ง",
-                "security.create_token_btn": "สร้าง API Token ใหม่",
-                "security.max_token_reached": "คุณมี API Token ครบตามจำนวนที่กำหนดแล้ว",
-                "security.existing_tokens": "รายการ API Token ที่มี:",
-                "security.no_tokens": "คุณยังไม่มี API Token",
-                "security.delete_token_btn": "ลบ",
-                "security.delete_confirm_msg": "คุณแน่ใจหรือไม่ว่าต้องการลบ API Token นี้? การลบจะเพิ่มสิทธิ์ในการสร้าง Token ของคุณ 1 ครั้ง",
-
-                // FACE MANAGEMENT TAB
-                "face_management.title": "จัดการใบหน้าและเอพีไอโทเค็น",
-                "face_management.registered_faces_title": "ใบหน้าที่ลงทะเบียนแล้ว ({{ subusers | length }})",
+                "face_management.title": "จัดการใบหน้าและโทเค็น",
+                "face_management.default_users_title": "ผู้ใช้เริ่มต้น",
+                "face_management.add_group_btn": "เพิ่มกลุ่ม",
                 "face_management.table_username": "ชื่อผู้ใช้งาน",
-                "face_management.table_api_token": "API Token",
+                "face_management.table_api_token": "โทเค็น",
+                "face_management.table_na": "ไม่มี",
+                "face_management.no_api_token": "ไม่มีโทเค็น",
                 "face_management.table_registered_at": "ลงทะเบียนเมื่อ",
                 "face_management.table_last_verified": "ยืนยันครั้งล่าสุด",
                 "face_management.table_actions": "การดำเนินการ",
                 "face_management.edit_btn": "แก้ไข",
                 "face_management.delete_btn": "ลบ",
+                "face_management.edit_group_name_btn": "แก้ไขชื่อกลุ่ม",
+                "face_management.delete_group_btn": "ลบกลุ่ม",
+                "face_management.delete_group_confirm": "คุณต้องการลบกลุ่ม '{{group_name}}' หรือไม่? ผู้ใช้ทั้งหมดในกลุ่มนี้จะถูกย้ายไปที่กลุ่ม Default",
                 "face_management.no_faces": "ยังไม่มีใบหน้าลงทะเบียนไว้",
+                "face_management.token_title": "จัดการโทเค็น",
+                "face_management.token_remaining": "สิทธิ์ในการสร้าง Token คงเหลือ: <strong class=\"text-xl text-yellow-300\">{{ token_count }}</strong> ครั้ง",
+                "face_management.create_token_btn": "สร้างโทเค็นใหม่",
+                "face_management.max_token_reached": "คุณมีโทเค็นครบตามจำนวนที่กำหนดแล้ว",
+                "face_management.existing_tokens": "รายการโทเค็นที่มี:",
+                "face_management.no_tokens": "คุณยังไม่มีโทเค็น",
+                "face_management.delete_token_btn": "ลบ",
+                "face_management.delete_confirm_msg": "คุณแน่ใจหรือไม่ว่าต้องการลบโทเค็นนี้? การลบจะเพิ่มสิทธิ์ในการสร้าง Token ของคุณ 1 ครั้ง",
                 "face_management.edit_modal_title": "แก้ไขชื่อผู้ใช้งาน",
                 "face_management.new_username_label": "ชื่อผู้ใช้งานใหม่",
                 "face_management.cancel_btn": "ยกเลิก",
                 "face_management.save_btn": "บันทึก",
                 "face_management.delete_confirm": "คุณต้องการลบใบหน้าผู้ใช้งาน: {{username}} (ID: {{id}}) ใช่หรือไม่?",
-
-                // CREDIT TAB
+                "add_group_modal.title": "สร้างกลุ่มใหม่",
+                "add_group_modal.group_name_label": "ชื่อกลุ่ม",
+                "add_group_modal.select_subusers_label": "เลือกผู้ใช้งานย่อย",
+                "add_group_modal.create_btn": "สร้างกลุ่ม",
+                "edit_group_modal.title": "แก้ไขชื่อกลุ่ม",
+                "edit_group_modal.new_group_name_label": "ชื่อกลุ่มใหม่",
                 "credit.title": "เครดิตการใช้งาน",
                 "credit.remaining_credits": "เครดิตคงเหลือ",
                 "credit.buy_more_btn": "ซื้อเครดิตเพิ่ม",
-
-                // FAQ TAB
                 "faq.title": "คำถามที่พบบ่อย (FAQ)",
-                "faq.q1": "ฉันจะได้รับเครดิตเมื่อใด",
-                "faq.a1": "เครดิตจะถูกเพิ่มเข้าบัญชีของคุณทันทีหลังจากที่เรายืนยันการชำระเงินเรียบร้อยแล้ว หากพบปัญหาโปรดติดต่อฝ่ายสนับสนุน.",
-                "faq.q2": "ทำไมบัญชีของฉันถึงขึ้นว่า \"ยังไม่ยืนยัน\"?",
-                "faq.a2": "หมายความว่าคุณยังไม่ได้คลิกลิงก์ยืนยันที่เราส่งไปยังอีเมลของคุณ โปรดตรวจสอบอีเมล (รวมถึงโฟลเดอร์ Junk/Spam) และคลิกลิงก์เพื่อยืนยันบัญชี.",
+                "faq.q1": "เมื่อใดที่ระบบจะหักเครดิตออกจากบัญชีของฉัน?",
+                "faq.a1": "เครดิตจะถูกหักเฉพาะตอนที่คุณลงทะเบียนใบหน้าเท่านั้น เมื่อคุณยืนยันใบหน้า เครดิตจะไม่ถูกหัก",
+                "faq.q2": "สามารถตั้งชื่อผู้ใช้เหมือนกันภายในโทเค็นเดียวกันได้หรือไม่?",
+                "faq.a2": "ไม่สามารถตั้งชื่อผู้ใช้เหมือนกันภายในโทเค็นเดียวกันได้",
+                "faq.q3": "เมื่อผู้ใช้ลบกลุ่มที่สร้างขึ้น ผู้ใช้ในกลุ่มนั้นจะเป็นอย่างไร?",
+                "faq.a3": "เมื่อมีการสร้างกลุ่มและลบกลุ่มนั้น ผู้ใช้ในกลุ่มนั้นจะถูกย้ายไปที่กลุ่มผู้ใช้เริ่มต้น (Default User)"
             }
         };
         
         let currentLang = localStorage.getItem('lang') || 'en';
+
+        function formatDateForLocale(isoString, lang) {
+            if (!isoString || isoString === 'None' || isoString === 'null') {
+                const translations = i18n_data[lang];
+                return translations['face_management.table_na'] || 'N/A';
+            }
+            try {
+                const date = new Date(isoString);
+                const options = {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                };
+                
+                if (lang === 'th') {
+                    return new Intl.DateTimeFormat('th-TH-u-ca-buddhist', options).format(date);
+                } else {
+                    return new Intl.DateTimeFormat('en-GB', options).format(date);
+                }
+            } catch (e) {
+                console.error("Error formatting date:", e);
+                return isoString;
+            }
+        }
         
         function applyLanguage(lang) {
             const translations = i18n_data[lang];
             
+            const pageTitle = document.querySelector('title[data-i18n="page_title"]');
+            if (pageTitle && translations['page_title']) {
+                document.title = translations['page_title'];
+            }
+
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
                 if (translations[key]) {
                     // Special handling for content that might contain HTML/template variables
-                    if (key === 'nav.credit_label' || key === 'security.token_remaining') {
+                    if (key === 'nav.credit_label' || key === 'face_management.token_remaining') {
                         element.innerHTML = translations[key];
                     } else {
                         element.textContent = translations[key];
@@ -557,14 +762,12 @@
                 }
             });
 
-            // Update confirmation messages for consistency
             document.querySelectorAll('form[action="/account/delete_api_token"]').forEach(form => {
-                if (translations['security.delete_confirm_msg']) {
-                    form.setAttribute('onsubmit', `return confirm('${translations['security.delete_confirm_msg'].replace(/'/g, "\\'")}')`);
+                if (translations['face_management.delete_confirm_msg']) {
+                    form.setAttribute('onsubmit', `return confirm('${translations['face_management.delete_confirm_msg'].replace(/'/g, "\\'")}')`);
                 }
             });
 
-            // 3. Update button styles
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 if (btn.dataset.lang === lang) {
                     btn.classList.remove('bg-gray-800', 'text-gray-400');
@@ -575,44 +778,38 @@
                 }
             });
             
-            // 4. Update the <html> lang attribute
+            document.querySelectorAll('.translatable-date').forEach(el => {
+                const timestamp = el.dataset.timestamp;
+                el.textContent = formatDateForLocale(timestamp, lang);
+            });
+
             document.documentElement.lang = lang;
-            
-            // 5. Save preference
             localStorage.setItem('lang', lang);
             currentLang = lang;
         }
 
-        // Event listener for language buttons
         document.querySelectorAll('.lang-btn').forEach(button => {
             button.addEventListener('click', () => {
                 applyLanguage(button.dataset.lang);
             });
         });
         
-        // --- Existing Script Logic (Keep existing functions) ---
-        
         function setFullHeight() {
             document.body.style.height = window.innerHeight + 'px';
         }
         window.addEventListener('resize', setFullHeight);
         
-        // Tab Logic
         function showTab(tabId) {
-            // Hide all tab content
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.add('hidden');
             });
-            // Show the selected tab content
             document.getElementById(tabId).classList.remove('hidden');
 
-            // Reset all tab buttons
             document.querySelectorAll('.tab-button').forEach(button => {
                 button.classList.remove('border-cyan-400', 'text-white');
                 button.classList.add('border-transparent', 'text-gray-400', 'hover:text-cyan-400', 'hover:border-gray-500');
             });
 
-            // Activate the selected tab button
             const activeBtn = document.getElementById('tab-' + tabId.replace('-tab', '') + '-btn');
             if (activeBtn) {
                 activeBtn.classList.add('border-cyan-400', 'text-white');
@@ -620,26 +817,17 @@
             }
         }
 
-        // Set default tab on load, checking for flash message
         window.addEventListener('load', () => {
             setFullHeight();
-            
-            // ** NEW: Load saved language or default **
             applyLanguage(currentLang);
             
-            // The default flash message query class has been updated in the HTML to use ID, 
-            // but checking the class still works for determining if a message exists on first load.
             const flashMessageExists = document.querySelector('#flash-msg');
-            
             let defaultTab = 'overview-tab';
             
-            // If there's a flash message, default to the Security tab since token logic resided there, 
-            // but now it is in face-management-tab.
             if (flashMessageExists) {
                 defaultTab = 'face-management-tab';
             }
             
-            // Optional: Check URL hash for direct tab linking
             if (window.location.hash) {
                 const hashId = window.location.hash.substring(1);
                 if (document.getElementById(hashId)) {
@@ -650,20 +838,28 @@
             showTab(defaultTab);
         });
 
-        // NEW: Auto-hide Flash Message after 5 seconds
         const flashMessage = document.getElementById('flash-msg');
         if (flashMessage) {
-            // 1. Start the fade-out process after 4 seconds (1 second before full hide)
             setTimeout(() => {
                 flashMessage.classList.remove('opacity-100');
                 flashMessage.classList.add('opacity-0');
-            }, 4000); // Start fade out at 4 seconds
+            }, 4000);
 
-            // 2. Remove the element completely after 5 seconds
             setTimeout(() => {
                 flashMessage.remove();
-            }, 5000); // Remove completely after 5 seconds (Fade out duration is 1000ms from CSS)
+            }, 5000);
         }
+
+        function openAddGroupModal() {
+            document.getElementById('add-group-modal').classList.remove('hidden');
+            document.getElementById('add-group-modal').classList.add('flex');
+        }
+
+        function closeAddGroupModal() {
+            document.getElementById('add-group-modal').classList.add('hidden');
+            document.getElementById('add-group-modal').classList.remove('flex');
+        }
+
         function openEditModal(subuserId, currentUsername) {
             document.getElementById('edit-subuser-id').value = subuserId;
             document.getElementById('new-username').value = currentUsername;
@@ -676,13 +872,24 @@
             document.getElementById('edit-modal').classList.remove('flex');
         }
 
+        function openEditGroupModal(currentName) {
+            document.getElementById("old-group-name").value = currentName;
+            document.getElementById("new-group-name").value = currentName;
+            document.getElementById("edit-group-modal").classList.remove("hidden");
+            document.getElementById("edit-group-modal").classList.add("flex");
+        }
+
+        function closeEditGroupModal() {
+            document.getElementById("edit-group-modal").classList.add("hidden");
+            document.getElementById("edit-group-modal").classList.remove("flex");
+        }
+
         function deleteSubuser(subuserId, username) {
              const translations = i18n_data[currentLang];
              let confirmMessage = translations['face_management.delete_confirm'];
              confirmMessage = confirmMessage.replace('{{username}}', username).replace('{{id}}', subuserId);
              
             if (confirm(confirmMessage)) {
-                // สร้างฟอร์มชั่วคราวเพื่อส่ง POST request ไปยัง /subuser/delete
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '/subuser/delete';
@@ -697,6 +904,14 @@
                 form.submit();
             }
         }
+
+        function confirmDeleteGroup(formElement, groupName) {
+            const translations = i18n_data[currentLang];
+            let confirmMessage = translations['face_management.delete_group_confirm'];
+            confirmMessage = confirmMessage.replace('{{group_name}}', groupName);
+            return confirm(confirmMessage);
+        }
+
     </script>
 </body>
 </html>

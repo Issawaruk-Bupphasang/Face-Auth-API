@@ -11,6 +11,7 @@ import re
 import dns.resolver
 import pytz
 import random
+import time
 # ===== Third-party libraries =====
 import bcrypt
 import mysql.connector
@@ -68,7 +69,10 @@ DB_CONFIG = {
 }
 # ===== FastAPI App =====
 app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key="testsecret123")
+app.add_middleware(
+    SessionMiddleware, 
+    secret_key="your_very_long_and_secure_secret_key_at_least_32_chars_long", 
+)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 serializer = URLSafeTimedSerializer(os.getenv("SECRET_KEY"))
@@ -277,7 +281,6 @@ def query_db(query: str, args=(), one=False):
         cursor.execute(query, args)
         result = cursor.fetchone() if one else cursor.fetchall()
     except mysql.connector.Error as e:
-        print(f"[DB ERROR] {e}")
         result = None if one else []
     finally:
         if cursor:
@@ -314,15 +317,11 @@ def get_token_by_user_id(user_id: int):
     results = query_db(query, (user_id,))
     return [r['api_token'] for r in results] if results else []
 
-# ใน main.py เพิ่มฟังก์ชันเหล่านี้ใกล้เคียงกับ get_user_by_username
 
 def get_subuser_by_username(username: str):
-    """Retrieves a subuser by their unique username."""
-    # ใช้สำหรับตรวจสอบว่า username ถูกใช้ไปแล้วหรือไม่
     return query_db('SELECT subuser_id, user_id, username FROM subusers WHERE username=%s', (username,), one=True)
 
 def get_subusers_by_user_id(user_id: int):
-    """Retrieves all subusers registered under a main user."""
     query = """
         SELECT 
             s.subuser_id, 
@@ -339,22 +338,16 @@ def get_subusers_by_user_id(user_id: int):
     return query_db(query, (user_id,))
 
 def get_subuser_by_username_and_token_id(username: str, token_id: int):
-    """
-    Retrieves a subuser by their username, limited to a specific token_id.
-    """
-    # ค้นหา Subuser ที่มี username ตรงกัน ภายใต้ token_id นี้เท่านั้น
     query = 'SELECT subuser_id, token_id, username FROM subusers WHERE username=%s AND token_id=%s'
     params = (username, token_id)
     return query_db(query, params, one=True)
 
-# NEW API: Endpoint สำหรับลบ Subuser
 @app.post("/subuser/delete")
 async def delete_subuser_endpoint(request: Request, subuser_id: int = Form(...)):
     user_id = request.session.get('user_id')
     if not user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not logged in")
 
-    # ตรวจสอบว่า subuser นั้นเป็นของ user ที่ล็อกอินอยู่จริง
     if execute_db('DELETE FROM subusers WHERE subuser_id=%s AND user_id=%s', (subuser_id, user_id)):
         request.session['flash'] = f"ลบใบหน้าผู้ใช้งาน (ID: {subuser_id}) สำเร็จ"
     else:
@@ -362,15 +355,12 @@ async def delete_subuser_endpoint(request: Request, subuser_id: int = Form(...))
         
     return RedirectResponse("/account#face-management-tab", status_code=HTTP_303_SEE_OTHER)
 
-# NEW API: Endpoint สำหรับแก้ไขชื่อผู้ใช้งาน Subuser 
 @app.post("/subuser/update_username") 
 async def update_subuser_username_endpoint(request: Request, subuser_id: int = Form(...), new_username: str = Form(...)): 
     user_id = request.session.get('user_id') 
     if not user_id: 
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not logged in") 
 
-    # *** เพิ่ม: ดึง token_id ของ Subuser ที่กำลังแก้ไขออกมา ***
-    # สมมติว่ามีฟังก์ชัน get_subuser_token_id ที่สามารถดึง token_id จาก subuser_id
     subuser_info = query_db('SELECT token_id FROM subusers WHERE subuser_id=%s AND user_id=%s', (subuser_id, user_id), one=True)
     if not subuser_info:
         request.session['flash'] = "ไม่พบ Subuser หรือคุณไม่มีสิทธิ์แก้ไข"
@@ -378,22 +368,96 @@ async def update_subuser_username_endpoint(request: Request, subuser_id: int = F
         
     current_token_id = subuser_info['token_id']
 
-    # 1. ตรวจสอบความซ้ำซ้อนของชื่อผู้ใช้งานใหม่
-    # *** แก้ไข: เปลี่ยนไปกรองด้วย token_id แทน user_id ***
     existing_subuser = get_subuser_by_username_and_token_id(new_username, current_token_id) 
     
-    # เงื่อนไข: ถ้าพบ Subuser ที่มีชื่อซ้ำภายใต้ token_id เดียวกัน และ Subuser ที่พบนั้นไม่ใช่ subuser_id ปัจจุบัน
     if existing_subuser and existing_subuser['subuser_id'] != subuser_id: 
         request.session['flash'] = "ชื่อผู้ใช้งานนี้ถูกใช้แล้วโดย Subuser อื่น **ภายใต้ API Token เดียวกัน**" 
         return RedirectResponse("/account#face-management-tab", status_code=HTTP_303_SEE_OTHER) 
 
-    # 2. อัปเดตชื่อผู้ใช้งาน
     if execute_db('UPDATE subusers SET username=%s WHERE subuser_id=%s AND user_id=%s', (new_username, subuser_id, user_id)): 
         request.session['flash'] = f"แก้ไขชื่อผู้ใช้งานเป็น **{new_username}** สำเร็จ" 
     else: 
         request.session['flash'] = "ไม่สามารถแก้ไขชื่อผู้ใช้งานได้ (อาจเป็นเพราะข้อมูลไม่ถูกต้อง)" 
         
     return RedirectResponse("/account#face-management-tab", status_code=HTTP_303_SEE_OTHER)
+
+@app.post("/group/create")
+async def create_group(
+    request: Request,
+    group_name: str = Form(...),
+    subuser_ids: list[int] = Form([]),
+):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    for sid in subuser_ids:
+        cursor.execute(
+            "UPDATE subusers SET channel_name = %s WHERE subuser_id = %s",
+            (group_name, sid)
+        )
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    request.session["flash"] = f"สร้างกลุ่ม {group_name} สำเร็จ!"
+    return RedirectResponse(url="/account#face-management-tab", status_code=303)
+
+@app.post("/group/update_name")
+async def update_group_name(
+    request: Request,
+    old_group_name: str = Form(...),
+    new_group_name: str = Form(...),
+):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "UPDATE subusers SET channel_name = %s WHERE channel_name = %s",
+        (new_group_name, old_group_name)
+    )
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    request.session["flash"] = f"เปลี่ยนชื่อกลุ่มจาก '{old_group_name}' เป็น '{new_group_name}' สำเร็จ!"
+    return RedirectResponse(url="/account#face-management-tab", status_code=303)
+
+
+@app.post("/group/delete")
+async def delete_group(request: Request):
+    form = await request.form()
+    group_name = form.get("group_name")
+
+    if not group_name:
+        return RedirectResponse(url="/account", status_code=303)
+
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # เปลี่ยน channel_name ของกลุ่มนี้ให้เป็น Default
+        cursor.execute(
+            "UPDATE subusers SET channel_name='Default' WHERE user_id=%s AND channel_name=%s",
+            (user_id, group_name)
+        )
+        conn.commit()
+
+        request.session["flash"] = f"ลบกลุ่ม {group_name} แล้ว และย้ายผู้ใช้ไป Default สำเร็จ"
+
+    except Exception as e:
+        logger.error(f"Error deleting group {group_name}: {e}")
+        request.session["flash"] = f"เกิดข้อผิดพลาดในการลบกลุ่ม {group_name}"
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+    return RedirectResponse(url="/account", status_code=303)
 
 # ===== Face Occlusion / Frontal Checks =====
 ALL_KEY_INDICES = [
@@ -811,6 +875,8 @@ async def logout(request: Request):
         message = "เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบใหม่"
     return templates.TemplateResponse("login.html", {"request": request, "message": message})
 
+# ใน main.py: แทนที่ฟังก์ชัน @app.post("/auth/login", ...)
+
 @app.post("/auth/login", response_class=HTMLResponse)
 async def login(request: Request, identifier: str = Form(...), password: str = Form(...)):
     user = get_user_by_username(identifier)
@@ -823,6 +889,7 @@ async def login(request: Request, identifier: str = Form(...), password: str = F
             {"request": request, "error": "บัญชีผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"}
         )
     
+    # ตรวจสอบรหัสผ่าน
     if password != "face_verified_password":
         if not bcrypt.checkpw(password.encode(), user['password'].encode()):
             return templates.TemplateResponse(
@@ -830,10 +897,12 @@ async def login(request: Request, identifier: str = Form(...), password: str = F
                 {"request": request, "error": "รหัสผ่านไม่ถูกต้อง"}
             )
 
-    # ✅ เพิ่มบรรทัดนี้
+    # 🟢 โค้ดที่แก้ไข: ตั้งค่าสถานะการล็อกอินให้สมบูรณ์
+    request.session['logged_in'] = True         # <--- บรรทัดนี้ที่ขาดหายไป
     request.session['user_id'] = user['user_id']
     request.session['username'] = user['username']
 
+    # Redirect ไปหน้า Account
     return RedirectResponse(url="/api", status_code=303)
 
 @app.get("/api/face_authentication", response_class=HTMLResponse)
@@ -891,43 +960,22 @@ async def api_page(request: Request):
             
     return templates.TemplateResponse("api.html", context)
 
-# @app.get("/account", response_class=HTMLResponse)
-# async def account(request: Request):
-#     username = request.session.get("username")
-#     if not username:
-#         return RedirectResponse(url="/login", status_code=303)
-#     user = query_db("SELECT * FROM users WHERE username=%s", (username,), one=True)
-#     if not user:
-#         return HTMLResponse("User not found", status_code=404)
-#     user_id = user['user_id']
-#     all_tokens = get_token_by_user_id(user_id)
-#     main_api_token = all_tokens[0] if all_tokens else None
-#     credit_count = 0
-#     if main_api_token:
-#         token_info = get_user_by_token(main_api_token)
-#         credit_count = token_info.get('credit_count') if token_info else 0
-#     final_credit_count = credit_count if user['activated'] else 0
-#     return templates.TemplateResponse("account.html", {
-#         "request": request,
-#         "user": user["username"],
-#         "email": user["email"],
-#         "activated": user["activated"],
-#         "credit_count": final_credit_count,
-#         "tokens": all_tokens,
-#         "token": main_api_token,
-#         # เพิ่ม token_count เข้าไปใน context
-#         "token_count": user.get('token_count', 0), 
-#     })
-
 @app.get("/account", response_class=HTMLResponse)
 async def account(request: Request):
-    username = request.session.get("username")
-    if not username:
+    
+    # --- Session ตรวจสอบเหมือนเดิม ---
+    if not request.session.get("logged_in") or not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=303)
-    user = query_db("SELECT * FROM users WHERE username=%s", (username,), one=True)
+        
+    username = request.session.get("username")
+    user_id = request.session.get('user_id') 
+    
+    # --- ดึงข้อมูลผู้ใช้ ---
+    user = query_db("SELECT * FROM users WHERE user_id=%s", (user_id,), one=True)
     if not user:
         return HTMLResponse("User not found", status_code=404)
-    user_id = user['user_id']
+        
+    # --- ดึง API Token (ไม่แตะส่วนนี้เลย) ---
     all_tokens = get_token_by_user_id(user_id)
     main_api_token = all_tokens[0] if all_tokens else None
     credit_count = 0
@@ -936,8 +984,27 @@ async def account(request: Request):
         credit_count = token_info.get('credit_count') if token_info else 0
     final_credit_count = credit_count if user['activated'] else 0
 
-    # NEW LOGIC: Fetch and format subusers data
+    # --- ดึง Subusers แบบเดิม ---
     subusers_data = get_subusers_by_user_id(user_id)
+
+    # --- เพิ่มส่วนนี้ เพื่อให้แสดง Group ได้เหมือนโค้ดแรก ---
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        for subuser in subusers_data:
+            cursor.execute("SELECT channel_name FROM subusers WHERE subuser_id=%s", (subuser['subuser_id'],))
+            result = cursor.fetchone()
+            # ถ้ามี channel_name ก็เพิ่มเข้าไป, ถ้าไม่มีให้ใส่ Default
+            subuser['channel_name'] = result['channel_name'] if result and result.get('channel_name') else 'Default'
+    except Exception as e:
+        logger.error(f"Error fetching group info for subusers: {e}")
+        for subuser in subusers_data:
+            subuser['channel_name'] = 'Default'
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+    # --- จัดรูปแบบวันที่ (เหมือนเดิม) ---
     for subuser in subusers_data:
         if subuser['registered_at']:
             subuser['registered_at_formatted'] = format_thai_datetime(subuser['registered_at'])
@@ -945,8 +1012,8 @@ async def account(request: Request):
             subuser['last_verified_at_formatted'] = format_thai_datetime(subuser['last_verified_at'])
         else:
             subuser['last_verified_at_formatted'] = "-"
-            
-    # Preserve original context and add 'subusers'
+
+    # --- ส่งข้อมูลไป Template ---
     return templates.TemplateResponse("account.html", {
         "request": request,
         "user": user["username"],
@@ -955,11 +1022,55 @@ async def account(request: Request):
         "credit_count": final_credit_count,
         "tokens": all_tokens,
         "token": main_api_token,
-        # เพิ่ม token_count เข้าไปใน context
         "token_count": user.get('token_count', 0), 
-        # NEW: Add subusers data
         "subusers": subusers_data,
     })
+
+@app.post("/subuser/update_username_and_channel")
+async def update_subuser_details(
+    request: Request,
+    subuser_id: int = Form(...),
+    new_username: str = Form(...)
+):
+    user_id = request.session.get("user_id")
+    if not request.session.get("logged_in") or not user_id:
+        return RedirectResponse("/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    flash_msg = "เกิดข้อผิดพลาดในการอัปเดตข้อมูลผู้ใช้งานย่อย"
+    try:
+        conn = get_db_connection()
+        c = conn.cursor()
+
+        # ตรวจสอบสิทธิ์เจ้าของ
+        c.execute("SELECT user_id FROM subusers WHERE subuser_id = %s", (subuser_id,))
+        owner_id = c.fetchone()
+
+        if owner_id and owner_id[0] == user_id:
+            # ✅ อัปเดตเฉพาะ username
+            c.execute("""
+                UPDATE subusers 
+                SET username = %s
+                WHERE subuser_id = %s
+            """, (new_username, subuser_id))
+            conn.commit()
+            flash_msg = f"อัปเดตชื่อผู้ใช้งานย่อย ID {subuser_id} สำเร็จ"
+        else:
+            flash_msg = "ไม่พบผู้ใช้งานย่อยดังกล่าว หรือคุณไม่มีสิทธิ์แก้ไข"
+
+    except Exception as e:
+        logger.error(f"Error updating subuser details: {e}")
+        flash_msg = f"เกิดข้อผิดพลาด: {str(e)}"
+
+    finally:
+        if 'c' in locals() and c is not None: c.close()
+        if 'conn' in locals() and conn is not None: conn.close()
+
+    request.session["flash"] = flash_msg
+    cache_buster = random.randint(1000, 9999)
+    return RedirectResponse(
+        f"/account?refresh={cache_buster}#face-management-tab",
+        status_code=HTTP_303_SEE_OTHER
+    )
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_form(request: Request):

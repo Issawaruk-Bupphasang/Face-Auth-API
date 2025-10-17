@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🚀 สมัครสมาชิก</title>
+<title>สมัครบัญชี</title>
 
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -89,7 +89,7 @@
   <div class="absolute -top-6 -right-6 w-20 h-20 sm:w-24 sm:h-24 bg-purple-600/30 rounded-full blur-3xl pulse"></div>
 
       <h2 class="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-lg">
-        สมัครสมาชิก
+        สมัครบัญชี
       </h2>
       {% if request.session.get("flash") %}
         <div class="mb-4 p-2 rounded bg-green-500 text-white">
@@ -97,7 +97,6 @@
         </div>
       {% endif %}
       <form action="/auth/register" method="POST" onsubmit="return validateForm(event);" class="space-y-4" novalidate>
-        <!-- Username (อ้างอิง) -->
         <div class="mb-4 relative">
           <div class="flex items-center relative">
             <span class="text-red-500 text-lg absolute left-0 top-1/2 -translate-y-1/2 -ml-3">*</span>
@@ -109,7 +108,6 @@
           <div id="username-error" class="text-sm text-red-400 hidden mt-1 ml-1"></div>
         </div>
 
-        <!-- Password -->
         <div class="mb-4 relative">
           <div class="flex items-center relative">
             <span class="text-red-500 text-lg absolute left-0 top-1/2 -translate-y-1/2 -ml-3">*</span>
@@ -118,7 +116,6 @@
               <label for="password">Password</label>
               <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300"
                       onclick="togglePassword('password', this)">
-                <!-- icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -131,7 +128,6 @@
           <div id="password-error-format" class="text-sm text-red-400 hidden mt-1 ml-1"></div>
         </div>
 
-        <!-- Confirm Password -->
         <div class="mb-4 relative">
           <div class="flex items-center relative">
             <span class="text-red-500 text-lg absolute left-0 top-1/2 -translate-y-1/2 -ml-3">*</span>
@@ -184,7 +180,7 @@
         </div>
 
         <!-- Submit -->
-        <input type="submit" value="สมัครสมาชิก"
+        <input type="submit" value="สมัครบัญชี"
               class="w-full py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold rounded-lg shadow-lg hover:opacity-80 transition cursor-pointer" />
   </form>
 
