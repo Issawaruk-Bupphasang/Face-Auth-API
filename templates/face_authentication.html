@@ -389,8 +389,8 @@
           "endpoint.title": "Endpoint",
           "token.title": "API Token",
           "code.title": "ตัวอย่างโค้ดการใช้งาน",
-          "code.btn_verify": "ตรวจสอบ",
-          "code.btn_register": "ลงทะเบียน",
+          "code.btn_verify": "ยินยันตัวด้วยใบหน้า",
+          "code.btn_register": "ลงทะเบียนใบหน้า",
           "req_params.title": "พารามิเตอร์คำขอ (Request Parameters)",
           "req_params.header_title": "พารามิเตอร์ส่วนหัว (Header)",
           "req_params.body_title": "พารามิเตอร์ส่วนเนื้อหา (Body)",
@@ -508,7 +508,7 @@
     return `
   <!DOCTYPE html>
   <html>
-  <head><title>Face ${title}</title></head>
+  <head><title>${title}</title></head>
   <body>
     <h2>${title}</h2>
     <video id="video" autoplay muted width="320" height="240" style="transform: scaleX(-1);"></video>
@@ -526,6 +526,7 @@
         wsUrl: "${url}"${token ? `,
         token: "${token}"` : ""}
       };
+      
       const ws = new WebSocket(CONFIG.wsUrl);
       const status = document.getElementById('status');
       const video = document.getElementById('video');
