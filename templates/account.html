@@ -65,6 +65,9 @@
         background-color: #334155; /* slate-700 */
         opacity: 0.5;
     }
+    .email-display {
+            word-break: break-all;
+        }
 </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -146,7 +149,7 @@
                 
                 <div class="grid md:grid-cols-3 gap-6">
                     
-                    <div class="custom-card md:col-span-1">
+                    <div class="custom-card md:col-span-2">
                         <h3 class="text-xl font-semibold flex items-center gap-3 text-cyan-400 border-b border-gray-700 pb-2 mb-4" data-i18n="overview.user_details">
                             <i data-lucide="user-circle" class="w-6 h-6"></i>
                             User Details
@@ -158,29 +161,16 @@
                             </div>
                             <div>
                                 <p class="text-sm text-gray-400" data-i18n="overview.email_label">Email</p>
-                                <p class="text-lg font-medium text-white">{{ email }}</p>
+                                <p class="text-lg font-medium text-white break-words flex items-center gap-2">
+                                    {{ email }}
+                                    {% if activated == 1 %}
+                                        <i data-lucide="check-circle" class="w-5 h-5 text-green-500" title="Verified"></i> 
+                                    {% else %}
+                                        <i data-lucide="x-circle" class="w-5 h-5 text-red-500" title="Unverified"></i>
+                                    {% endif %}
+                                </p>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="custom-card md:col-span-1">
-                        <h3 class="text-xl font-semibold flex items-center gap-3 text-purple-400 border-b border-gray-700 pb-2 mb-4" data-i18n="overview.status">
-                            <i data-lucide="info" class="w-6 h-6"></i>
-                            Account Status
-                        </h3>
-                        <p class="text-sm text-gray-400 mb-4" data-i18n="overview.email_verification">Email Verification</p>
-                        {% if activated == 1 %}
-                            <span class="inline-flex items-center gap-2 px-4 py-2 text-base font-medium rounded-lg text-green-400 bg-green-900/40 w-full justify-center">
-                                <i data-lucide="check-circle" class="w-5 h-5"></i>
-                                <span data-i18n="overview.status_verified">Verified</span>
-                            </span>
-                        {% else %}
-                            <span class="inline-flex items-center gap-2 px-4 py-2 text-base font-medium rounded-lg text-yellow-400 bg-yellow-900/40 w-full justify-center">
-                                <i data-lucide="alert-triangle" class="w-5 h-5"></i>
-                                <span data-i18n="overview.status_unverified">Unverified</span>
-                            </span>
-                            <p class="text-xs text-gray-500 mt-2 text-center" data-i18n="overview.unverified_hint">To verify, please proceed to the "Security" tab.</p>
-                        {% endif %}
                     </div>
 
                     <div class="custom-card md:col-span-1 text-center">
@@ -197,7 +187,55 @@
                             <i data-lucide="shopping-cart" class="w-4 h-4"></i> <span data-i18n="overview.buy_more">Buy More</span>
                         </a>
                     </div>
-
+                    
+                    <div class="custom-card md:col-span-3 space-y-4">  <h3 class="text-xl font-semibold flex items-center gap-3 text-yellow-400 border-b border-gray-700 pb-2 mb-4">
+                                    <i data-lucide="key-round" class="w-6 h-6"></i>
+                                    Manage API Token
+                                </h3>
+                                <div class="space-y-4">
+                                    <p class="text-sm text-gray-400" data-i18n="face_management.token_remaining">
+                                        Remaining Token Creation Rights: <strong class="text-xl text-yellow-300">{{ token_count }}</strong> times
+                                    </p>
+                                    
+                                    <form action="/account/create_api_token" method="post" class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                        <button type="submit" 
+                                                {% if token_count <= 0 %}
+                                                    disabled
+                                                    class="bg-gray-600 cursor-not-allowed text-gray-400 opacity-70 inline-flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-lg transition text-white"
+                                                {% else %}
+                                                    class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:opacity-80 inline-flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-lg transition text-white"
+                                                {% endif %}>
+                                            <i data-lucide="plus-circle" class="w-5 h-5"></i> <span data-i18n="face_management.create_token_btn">Create New API Token</span>
+                                        </button>
+                                        {% if token_count <= 0 %}
+                                            <p class="text-red-400 text-sm mt-1 sm:mt-0" data-i18n="face_management.max_token_reached">You have reached the maximum number of API Tokens allowed.</p>
+                                        {% endif %}
+                                    </form>
+                                    
+                                    <div class="mt-6 space-y-2 border-t border-gray-700 pt-4">
+                                        <h3 class="text-lg font-medium text-gray-300" data-i18n="face_management.existing_tokens">Existing API Tokens:</h3>
+                                        {% if tokens %}
+                                            <ul class="space-y-3">
+                                                {% for t in tokens %}
+                                                <li class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 glass rounded-lg border border-gray-700">
+                                                    <code class="text-sm font-mono text-white select-all break-all w-full sm:w-auto mb-2 sm:mb-0">
+                                                        {{ t }}
+                                                    </code>
+                                                    <form action="/account/delete_api_token" method="post" onsubmit="return confirm('Are you sure you want to delete this API Token? Deleting it will increase your token creation right by 1.');">
+                                                        <input type="hidden" name="api_token" value="{{ t }}">
+                                                        <button type="submit" class="inline-flex items-center gap-1 text-red-400 hover:text-red-500 transition p-1 rounded-lg hover:bg-red-900/30 text-sm font-medium">
+                                                            <i data-lucide="trash-2" class="w-4 h-4"></i> <span data-i18n="face_management.delete_token_btn">Delete</span>
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="text-gray-500 italic mt-4" data-i18n="face_management.no_tokens">You currently have no API Tokens.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
                 </div>
             </div> 
             
